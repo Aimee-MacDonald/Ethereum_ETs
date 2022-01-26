@@ -82,6 +82,34 @@ describe('Eth ETs', () => {
       expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
       expect(await ethets.balanceOf(signers[1].address)).to.equal(1)
     })
+
+    it('Should return the tokenID by index for a specified holder', async () => {
+      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[1].address)
+      await ethets.mint(signers[0].address)
+
+      expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 0)).to.equal(0)
+      expect(await ethets.tokenOfOwnerByIndex(signers[1].address, 0)).to.equal(1)
+      expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 1)).to.equal(2)
+    })
+
+    it('Should return the total supply', async () => {
+      expect(await ethets.totalSupply()).to.equal(0)
+
+      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[1].address)
+      await ethets.mint(signers[2].address)
+      await ethets.mint(signers[3].address)
+      await ethets.mint(signers[4].address)
+
+      expect(await ethets.totalSupply()).to.equal(5)
+    })
+
+    it('Should return the token at an index', async () => {
+      await ethets.mint(signers[0].address)
+
+      expect(await ethets.tokenByIndex(0)).to.equal(0)
+    })
   })
 
   describe('Minting', () => {
@@ -95,19 +123,9 @@ describe('Eth ETs', () => {
   })
   
   describe('Querying', () => {
-    beforeEach(async () => {
-      await ethets.mint(signers[0].address)
-      await ethets.mint(signers[1].address)
-      await ethets.mint(signers[0].address)
-    })
-
-    it('Should return the tokenID by index for a specified holder', async () => {
-      expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 0)).to.equal(0)
-      expect(await ethets.tokenOfOwnerByIndex(signers[1].address, 0)).to.equal(1)
-      expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 1)).to.equal(2)
-    })
-
     it('Should return on-chain statistics data by token ID', async () => {
+      await ethets.mint(signers[0].address)
+
       const stats = await ethets.statsOf(0)
 
       expect(stats.firing_range).to.equal(100)

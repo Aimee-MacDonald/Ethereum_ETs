@@ -4,9 +4,13 @@ import ReactDOM from 'react-dom'
 import 'normalize.css'
 import './main.sass'
 
+import Inherited from './Sections/Inherited/Inherited'
+
 const Main = () => (
   <div id='Main'>
     <h1>Ethereum ETs</h1>
+    
+    <Inherited/>
 
     <div className='section'>
       <p>mint</p>
