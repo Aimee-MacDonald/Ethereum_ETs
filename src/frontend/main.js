@@ -6,8 +6,64 @@ import './main.sass'
 
 const Main = () => (
   <div id='Main'>
-    <h1>MAIN</h1>
+    <h1>Ethereum ETs</h1>
+
+    <div className='section'>
+      <p>mint</p>
+      <input/>
+      <button>Go</button>
+    </div>
+
+    <div className='section'>
+      <p>statsOf</p>
+      <input/>
+      <button>Go</button>
+    </div>
+
+    <div className='section'>
+      <p>abilityOf</p>
+      <input/>
+      <button>Go</button>
+    </div>
   </div>
 )
 
 ReactDOM.render(<Main/>, document.getElementById('root'))
+
+
+
+
+
+
+
+
+/* 
+    owner
+    renounceOwnership
+    transferOwnership
+
+
+
+
+    supportsInterface
+
+
+
+    
+    balanceOf
+    ownerOf
+    safeTransferFrom
+    transferFrom
+    approve
+    getApproved
+    setApprovalForAll
+    isApprovedForAll
+
+    name
+    symbol
+    tokenURI
+
+    totalSupply
+    tokenOfOwnerByIndex
+    tokenByIndex
+ */
