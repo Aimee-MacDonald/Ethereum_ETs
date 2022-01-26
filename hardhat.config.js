@@ -28,7 +28,7 @@ module.exports = {
     artifacts: './src/frontend/artifacts',
     tests: './tests/blockchain/unit'
   },
-  defaultNetwork: "kovan",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
       chainId: 1337
