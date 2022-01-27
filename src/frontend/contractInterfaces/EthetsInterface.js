@@ -118,10 +118,10 @@ export default class EthetsInterface extends BaseInterface {
     }
   }
 
-  mint(recipient) {
+  mint(recipient, amount) {
     if(super.ethCheck) {
       return super.getContract(true)
-        .then(contract => contract.mint(recipient))
+        .then(contract => contract.mint(recipient, amount))
     }
   }
 

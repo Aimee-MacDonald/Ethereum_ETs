@@ -9,8 +9,9 @@ const Minting = () => {
     e.preventDefault()
 
     const recipient = e.target.recipient.value
+    const amount = e.target.amount.value
     
-    ethets.mint(recipient)
+    ethets.mint(recipient, amount)
       .then(success => console.log(success))
   }
   
@@ -21,6 +22,8 @@ const Minting = () => {
       <form className='function' onSubmit={mint}>
         <p>mint(</p>
         <input placeholder='recipient' id='recipient' />
+        <p>,</p>
+        <input placeholder='amount' id='amount' />
         <p>)</p>
         <button type='submit'>Go</button>
       </form>

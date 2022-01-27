@@ -19,7 +19,7 @@ describe('Eth ETs', () => {
     })
 
     it('Should return a URI for the token', async () => {
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
       expect(await ethets.tokenURI(0)).to.not.equal('')
     })
 
@@ -48,13 +48,13 @@ describe('Eth ETs', () => {
     })
 
     it('Should return the owner of specific token', async () => {
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
 
       expect(await ethets.ownerOf(0)).to.equal(signers[0].address)
     })
 
     it('Should approve a token', async () => {
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
 
       await ethets.approve(signers[1].address, 0)
 
@@ -62,8 +62,7 @@ describe('Eth ETs', () => {
     })
 
     it('Should set approval for all tokens owned by a signer', async () => {
-      await ethets.mint(signers[0].address)
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 2)
 
       await ethets.setApprovalForAll(signers[1].address, true)
 
@@ -71,7 +70,7 @@ describe('Eth ETs', () => {
     })
 
     it('Should transfer a token from an approved signer', async () => {
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
       await ethets.approve(signers[1].address, 0)
 
       expect(await ethets.balanceOf(signers[0].address)).to.equal(1)
@@ -84,9 +83,9 @@ describe('Eth ETs', () => {
     })
 
     it('Should return the tokenID by index for a specified holder', async () => {
-      await ethets.mint(signers[0].address)
-      await ethets.mint(signers[1].address)
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
+      await ethets.mint(signers[1].address, 1)
+      await ethets.mint(signers[0].address, 1)
 
       expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 0)).to.equal(0)
       expect(await ethets.tokenOfOwnerByIndex(signers[1].address, 0)).to.equal(1)
@@ -96,17 +95,13 @@ describe('Eth ETs', () => {
     it('Should return the total supply', async () => {
       expect(await ethets.totalSupply()).to.equal(0)
 
-      await ethets.mint(signers[0].address)
-      await ethets.mint(signers[1].address)
-      await ethets.mint(signers[2].address)
-      await ethets.mint(signers[3].address)
-      await ethets.mint(signers[4].address)
+      await ethets.mint(signers[0].address, 5)
 
       expect(await ethets.totalSupply()).to.equal(5)
     })
 
     it('Should return the token at an index', async () => {
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
 
       expect(await ethets.tokenByIndex(0)).to.equal(0)
     })
@@ -116,15 +111,23 @@ describe('Eth ETs', () => {
     it('Should Mint a new ET NFT', async () => {
       expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
       
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
       
       expect(await ethets.balanceOf(signers[0].address)).to.equal(1)
+    })
+
+    it('Should mint multiple tokens', async () => {
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+      
+      await ethets.mint(signers[0].address, 5)
+
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(5)
     })
   })
   
   describe('Querying', () => {
     it('Should return on-chain statistics data by token ID', async () => {
-      await ethets.mint(signers[0].address)
+      await ethets.mint(signers[0].address, 1)
 
       const stats = await ethets.statsOf(0)
 

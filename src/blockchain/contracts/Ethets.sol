@@ -33,11 +33,13 @@ contract Ethets is Ownable, ERC721Enumerable {
 
   constructor() ERC721("Ethereum ET", "ETHET") {}
 
-  function mint(address recipient) external returns (bool) {
-    _safeMint(recipient, _tokenIdTracker.current());
-    _statistics[_tokenIdTracker.current()] = Statistics(100, 100, 100, 100, 100, 100, 100);
-    _abilities[_tokenIdTracker.current()] = Ability.NONE;
-    _tokenIdTracker.increment();
+  function mint(address recipient, uint256 amount) external returns (bool) {
+    for(uint256 i = 0; i < amount; i++) {
+      _safeMint(recipient, _tokenIdTracker.current());
+      _statistics[_tokenIdTracker.current()] = Statistics(100, 100, 100, 100, 100, 100, 100);
+      _abilities[_tokenIdTracker.current()] = Ability.NONE;
+      _tokenIdTracker.increment();
+    }
 
     return true;
   }
