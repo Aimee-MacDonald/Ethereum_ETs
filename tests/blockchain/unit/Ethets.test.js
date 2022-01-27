@@ -10,12 +10,16 @@ describe('Eth ETs', () => {
   })
 
   describe('Inherited Functions', () => {
+    beforeEach(async () => {
+      await ethets.toggleSaleIsActive()
+    })
+
     it('Should return the token name', async () => {
-      expect(await ethets.name()).to.equal('Ethereum ET')
+      expect(await ethets.name()).to.equal('CryptoWars Ethereum ET')
     })
 
     it('Should return the token symbol', async () => {
-      expect(await ethets.symbol()).to.equal('ETHET')
+      expect(await ethets.symbol()).to.equal('CWEE')
     })
 
     it('Should return a URI for the token', async () => {
@@ -111,6 +115,7 @@ describe('Eth ETs', () => {
     it('Should Mint a new ET NFT', async () => {
       expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
       
+      await ethets.toggleSaleIsActive()
       await ethets.mint(signers[0].address, 1)
       
       expect(await ethets.balanceOf(signers[0].address)).to.equal(1)
@@ -119,13 +124,34 @@ describe('Eth ETs', () => {
     it('Should mint multiple tokens', async () => {
       expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
       
+      await ethets.toggleSaleIsActive()
       await ethets.mint(signers[0].address, 5)
 
       expect(await ethets.balanceOf(signers[0].address)).to.equal(5)
     })
+
+    it('Should toggle saleIsActive', async () => {
+      expect(await ethets.saleIsActive()).to.equal(false)
+
+      await ethets.toggleSaleIsActive()
+      
+      expect(await ethets.saleIsActive()).to.equal(true)
+    })
+
+    it('Should revert when not the owner', async () => {
+      expect(await ethets.saleIsActive()).to.equal(false)
+      
+      await ethets.connect(signers[1].address).toggleSaleIsActive
+      
+      expect(await ethets.saleIsActive()).to.equal(false)
+    })
   })
   
   describe('Querying', () => {
+    beforeEach(async () => {
+      await ethets.toggleSaleIsActive()
+    })
+
     it('Should return on-chain statistics data by token ID', async () => {
       await ethets.mint(signers[0].address, 1)
 

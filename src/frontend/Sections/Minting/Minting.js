@@ -14,6 +14,9 @@ const Minting = () => {
     ethets.mint(recipient, amount)
       .then(success => console.log(success))
   }
+
+  const saleIsActive = () => ethets.saleIsActive().then(saleIsActive => console.log(saleIsActive))
+  const toggleSaleIsActive = () => ethets.toggleSaleIsActive().then(success => console.log(success))
   
   return (
     <div>
@@ -27,6 +30,16 @@ const Minting = () => {
         <p>)</p>
         <button type='submit'>Go</button>
       </form>
+
+      <div className='function'>
+        <p>saleIsActive()</p>
+        <button onClick={saleIsActive}>Go</button>
+      </div>
+
+      <div className='function'>
+        <p>toggleSaleIsActive()</p>
+        <button onClick={toggleSaleIsActive}>Go</button>
+      </div>
     </div>
   )
 }

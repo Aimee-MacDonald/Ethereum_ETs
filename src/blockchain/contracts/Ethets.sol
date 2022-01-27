@@ -12,6 +12,8 @@ contract Ethets is Ownable, ERC721Enumerable {
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => Ability) private _abilities;
 
+  bool public saleIsActive;
+
   struct Statistics {
     uint8 firing_range;
     uint8 firing_speed;
@@ -31,9 +33,11 @@ contract Ethets is Ownable, ERC721Enumerable {
     DECOY
   }
 
-  constructor() ERC721("Ethereum ET", "ETHET") {}
+  constructor() ERC721("CryptoWars Ethereum ET", "CWEE") {}
 
   function mint(address recipient, uint256 amount) external returns (bool) {
+    require(saleIsActive, "Ethets: Sale must be active to mint");
+
     for(uint256 i = 0; i < amount; i++) {
       _safeMint(recipient, _tokenIdTracker.current());
       _statistics[_tokenIdTracker.current()] = Statistics(100, 100, 100, 100, 100, 100, 100);
@@ -42,6 +46,10 @@ contract Ethets is Ownable, ERC721Enumerable {
     }
 
     return true;
+  }
+  
+  function toggleSaleIsActive() external onlyOwner {
+    saleIsActive = !saleIsActive;
   }
 
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {

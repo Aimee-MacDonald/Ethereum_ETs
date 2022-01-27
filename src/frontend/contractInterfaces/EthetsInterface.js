@@ -125,6 +125,20 @@ export default class EthetsInterface extends BaseInterface {
     }
   }
 
+  saleIsActive() {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.saleIsActive())
+    }
+  }
+
+  toggleSaleIsActive() {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.toggleSaleIsActive())
+    }
+  }
+
   statsOf(tokenId) {
     if(super.ethCheck) {
       return super.getContract()
