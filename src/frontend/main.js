@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import 'normalize.css'
@@ -8,14 +8,21 @@ import Inherited from './Sections/Inherited/Inherited'
 import Minting from './Sections/Minting/Minting'
 import Querying from './Sections/Querying/Querying'
 
-const Main = () => (
-  <div id='Main'>
-    <h1>Ethereum ETs</h1>
-    
-    <Inherited/>
-    <Minting/>
-    <Querying/>
-  </div>
-)
+const Main = () => {
+  const [ activeSection, setActiveSection ] = useState(0)
+
+  return (
+    <div id='Main'>
+      <h1>Ethereum ETs</h1>
+      <button onClick={() => setActiveSection(1)}>Inherited</button>
+      <button onClick={() => setActiveSection(2)}>Minting</button>
+      <button onClick={() => setActiveSection(3)}>Querying</button>
+
+      {activeSection === 1 && <Inherited/>}
+      {activeSection === 2 && <Minting/>}
+      {activeSection === 3 && <Querying/>}
+    </div>
+  )
+}
 
 ReactDOM.render(<Main/>, document.getElementById('root'))

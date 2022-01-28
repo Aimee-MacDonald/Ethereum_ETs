@@ -152,4 +152,11 @@ export default class EthetsInterface extends BaseInterface {
         .then(contract => contract.abilityOf(tokenId))
     }
   }
+
+  maxTokens() {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.maxTokens())
+    }
+  }
 }

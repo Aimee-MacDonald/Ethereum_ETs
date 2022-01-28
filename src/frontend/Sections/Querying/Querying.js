@@ -12,6 +12,7 @@ const Querying = () => {
     
     ethets.statsOf(tokenId)
       .then(stats => console.log(stats))
+      .catch(error => console.log(error.data.message))
   }
 
   const abilityOf = e => {
@@ -21,7 +22,10 @@ const Querying = () => {
 
     ethets.abilityOf(tokenId)
       .then(ability => console.log(ability))
+      .catch(error => console.log(error.data.message))
   }
+
+  const maxTokens = () => ethets.maxTokens().then(maxTokens => console.log(maxTokens * 1)).catch(error => console.log(error.data.message))
 
   return (
     <div>
@@ -40,6 +44,11 @@ const Querying = () => {
         <p>)</p>
         <button type='submit'>Go</button>
       </form>
+
+      <div className='function'>
+        <p>maxTokens()</p>
+        <button onClick={maxTokens}>Go</button>
+      </div>
     </div>
   )
 }

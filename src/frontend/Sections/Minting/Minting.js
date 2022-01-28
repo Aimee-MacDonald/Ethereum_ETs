@@ -12,11 +12,19 @@ const Minting = () => {
     const amount = e.target.amount.value
     
     ethets.mint(recipient, amount)
-      .then(success => console.log(success))
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
   }
 
   const saleIsActive = () => ethets.saleIsActive().then(saleIsActive => console.log(saleIsActive))
-  const toggleSaleIsActive = () => ethets.toggleSaleIsActive().then(success => console.log(success))
+
+  const toggleSaleIsActive = () => {
+    ethets.toggleSaleIsActive()
+      .then(transaction => transaction.wait())
+      .then(result => console.log('saleIsActive Toggled'))
+      .catch(error => console.log(error.data.message))
+  }
   
   return (
     <div>

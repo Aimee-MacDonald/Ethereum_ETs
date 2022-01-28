@@ -7,11 +7,17 @@ import EthetsInterface from '../../contractInterfaces/EthetsInterface'
 const Inherited = () => {
   const ethets = new EthetsInterface()
 
-  const name = () => ethets.name().then(name => console.log(name))
-  const symbol = () => ethets.symbol().then(symbol => console.log(symbol))
-  const owner = () => ethets.owner().then(owner => console.log(owner))
-  const renounceOwnership = () => ethets.renounceOwnership().then(success => console.log(success))
-  const totalSupply = () => ethets.totalSupply().then(totalSupply => console.log(totalSupply))
+  const name = () => ethets.name().then(name => console.log(name)).catch(error => console.log(error.data.message))
+  const symbol = () => ethets.symbol().then(symbol => console.log(symbol)).catch(error => console.log(error.data.message))
+  const owner = () => ethets.owner().then(owner => console.log(owner)).catch(error => console.log(error.data.message))
+  const totalSupply = () => ethets.totalSupply().then(totalSupply => console.log(totalSupply * 1)).catch(error => console.log(error.data.message))
+
+  const renounceOwnership = () => {
+    ethets.renounceOwnership()
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
+  }
 
   const tokenURI = e => {
     e.preventDefault()
@@ -20,6 +26,7 @@ const Inherited = () => {
 
     ethets.tokenURI(tokenId)
       .then(tokenUri => console.log(tokenUri))
+      .catch(error => console.log(error.data.message))
   }
 
   const transferOwnership = e => {
@@ -28,7 +35,9 @@ const Inherited = () => {
     const to = e.target.to.value
 
     ethets.transferOwnership(to)
-      .then(success => console.log(success))
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
   }
 
   const balanceOf = e => {
@@ -37,7 +46,8 @@ const Inherited = () => {
     const owner = e.target.owner.value
 
     ethets.balanceOf(owner)
-      .then(balance => console.log(balance))
+      .then(balance => console.log(balance * 1))
+      .catch(error => console.log(error.data.message))
   }
 
   const ownerOf = e => {
@@ -47,6 +57,7 @@ const Inherited = () => {
 
     ethets.ownerOf(tokenId)
       .then(owner => console.log(owner))
+      .catch(error => console.log(error.data.message))
   }
 
   const approve = e => {
@@ -56,7 +67,9 @@ const Inherited = () => {
     const tokenId = e.target.tokenId.value
 
     ethets.approve(to, tokenId)
-      .then(success => console.log(success))
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
   }
 
   const getApproved = e => {
@@ -66,6 +79,7 @@ const Inherited = () => {
     
     ethets.getApproved(tokenId)
       .then(approved => console.log(approved))
+      .catch(error => console.log(error.data.message))
   }
 
   const setApprovalForAll = e => {
@@ -75,7 +89,9 @@ const Inherited = () => {
     const approved = e.target.approved.value
 
     ethets.setApprovalForAll(operator, approved)
-      .then(success => console.log(success))
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
   }
 
   const isApprovedForAll = e => {
@@ -86,6 +102,7 @@ const Inherited = () => {
 
     ethets.isApprovedForAll(owner, operator)
       .then(approved => console.log(approved))
+      .catch(error => console.log(error.data.message))
   }
 
   const transferFrom = e => {
@@ -96,7 +113,9 @@ const Inherited = () => {
     const tokenId = e.target.tokenId.value
 
     ethets.transferFrom(from, to, tokenId)
-      .then(success => console.log(success))
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
   }
 
   const tokenOfOwnerByIndex = e => {
@@ -106,7 +125,8 @@ const Inherited = () => {
     const index = e.target.index.value
 
     ethets.tokenOfOwnerByIndex(owner, index)
-      .then(tokenId => console.log(tokenId))
+      .then(tokenId => console.log(tokenId * 1))
+      .catch(error => console.log(error.data.message))
   }
 
   const tokenByIndex = e => {
@@ -115,7 +135,8 @@ const Inherited = () => {
     const index = e.target.index.value
 
     ethets.tokenByIndex(index)
-      .then(tokenId => console.log(tokenId))
+      .then(tokenId => console.log(tokenId * 1))
+      .catch(error => console.log(error.data.message))
   }
 
   return (
