@@ -145,6 +145,47 @@ describe('Eth ETs', () => {
       
       expect(await ethets.saleIsActive()).to.equal(false)
     })
+
+    it('Should allow maximum 30 tokens to be minted at a time', async () => {
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+
+      await ethets.toggleSaleIsActive()
+      expect(ethets.mint(signers[0].address, 31)).to.be.revertedWith('Ethets: Max 30 NFTs per transaction')
+
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+    })
+
+    it('Should allow minting up to 900 total tokens', async () => {
+      await ethets.toggleSaleIsActive()
+      
+      for(let i = 0; i < 20; i++) await ethets.mint(signers[i].address, 30)
+
+      expect(await ethets.totalSupply()).to.equal(600)
+
+      for(let i = 0; i < 10; i++) {
+        for(let j = 0; j < 30; j++) {
+          await ethets.connect(signers[i]).transferFrom(signers[i].address, signers[19].address, i * 30 + j)
+        }
+      }
+
+      for(let i = 0; i < 10; i++) await ethets.mint(signers[i].address, 30)
+      
+      expect(await ethets.totalSupply()).to.equal(900)
+
+      expect(ethets.mint(signers[0].address, 1)).to.be.revertedWith('Ethers: Purchase would exceed max supply')
+
+      expect(await ethets.totalSupply()).to.equal(900)
+    })
+
+    it('Should allow a maximum of 30 tokens per wallet', async () => {
+      await ethets.toggleSaleIsActive()
+      await ethets.mint(signers[0].address, 30)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(30)
+
+      expect(ethets.mint(signers[0].address, 1)).to.be.revertedWith('Ethers: Limit is 30 tokens per wallet, sale not allowed')
+
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(30)
+    })
   })
   
   describe('Querying', () => {

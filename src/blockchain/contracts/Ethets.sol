@@ -13,6 +13,7 @@ contract Ethets is Ownable, ERC721Enumerable {
   mapping(uint256 => Ability) private _abilities;
 
   bool public saleIsActive;
+  uint256 public maxTokens = 900;
 
   struct Statistics {
     uint8 firing_range;
@@ -37,6 +38,9 @@ contract Ethets is Ownable, ERC721Enumerable {
 
   function mint(address recipient, uint256 amount) external returns (bool) {
     require(saleIsActive, "Ethets: Sale must be active to mint");
+    require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
+    require(totalSupply() + amount <= maxTokens, "Ethers: Purchase would exceed max supply");
+    require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
 
     for(uint256 i = 0; i < amount; i++) {
       _safeMint(recipient, _tokenIdTracker.current());
