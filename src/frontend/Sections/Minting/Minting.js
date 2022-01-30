@@ -22,7 +22,7 @@ const Minting = () => {
   const toggleSaleIsActive = () => {
     ethets.toggleSaleIsActive()
       .then(transaction => transaction.wait())
-      .then(result => console.log('saleIsActive Toggled'))
+      .then(result => console.log(result.events[0].event))
       .catch(error => console.log(error.data.message))
   }
   

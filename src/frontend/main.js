@@ -6,7 +6,7 @@ import './main.sass'
 
 import Inherited from './Sections/Inherited/Inherited'
 import Minting from './Sections/Minting/Minting'
-import Querying from './Sections/Querying/Querying'
+import Information from './Sections/Information/Information'
 
 const Main = () => {
   const [ activeSection, setActiveSection ] = useState(0)
@@ -16,11 +16,11 @@ const Main = () => {
       <h1>Ethereum ETs</h1>
       <button onClick={() => setActiveSection(1)}>Inherited</button>
       <button onClick={() => setActiveSection(2)}>Minting</button>
-      <button onClick={() => setActiveSection(3)}>Querying</button>
+      <button onClick={() => setActiveSection(3)}>Information</button>
 
       {activeSection === 1 && <Inherited/>}
       {activeSection === 2 && <Minting/>}
-      {activeSection === 3 && <Querying/>}
+      {activeSection === 3 && <Information/>}
     </div>
   )
 }

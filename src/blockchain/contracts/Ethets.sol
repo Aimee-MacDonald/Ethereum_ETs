@@ -5,6 +5,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
+////
+//  NOT IN PRODUCTION
+//
+import "hardhat/console.sol";
+//
+//  NOT IN PRODUCTION
+////
+
 contract Ethets is Ownable, ERC721Enumerable {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
@@ -14,6 +22,15 @@ contract Ethets is Ownable, ERC721Enumerable {
 
   bool public saleIsActive;
   uint256 public maxTokens = 900;
+  string private _baseTokenURI;
+
+  ////
+  //  NOT IN PRODUCTION
+  //
+  uint256 public randCounter = 16;
+  //
+  //  NOT IN PRODUCTION
+  ////
 
   struct Statistics {
     uint8 firing_range;
@@ -34,6 +51,10 @@ contract Ethets is Ownable, ERC721Enumerable {
     DECOY
   }
 
+  event SaleIsActiveToggle(bool saleIsActive);
+  event BaseURLChanged(string baseURI);
+  event TokenRerolled(uint256 tokenId);
+
   constructor() ERC721("CryptoWars Ethereum ET", "CWEE") {}
 
   function mint(address recipient, uint256 amount) external returns (bool) {
@@ -44,7 +65,37 @@ contract Ethets is Ownable, ERC721Enumerable {
 
     for(uint256 i = 0; i < amount; i++) {
       _safeMint(recipient, _tokenIdTracker.current());
-      _statistics[_tokenIdTracker.current()] = Statistics(100, 100, 100, 100, 100, 100, 100);
+
+      ////
+      //  NOT IN PRODUCTION
+      //
+      uint8 firing_range = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+      uint8 firing_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+      uint8 reload_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+      uint8 melee_damage = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+      uint8 melee_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+      uint8 magazine_capacity = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+      uint8 health = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+      randCounter = randCounter + 1;
+
+
+      _statistics[_tokenIdTracker.current()] = Statistics(firing_range, firing_speed, reload_speed, melee_damage, melee_speed, magazine_capacity, health);
+      //
+      //  NOT IN PRODUCTION
+      ////
+
       _abilities[_tokenIdTracker.current()] = Ability.NONE;
       _tokenIdTracker.increment();
     }
@@ -54,6 +105,7 @@ contract Ethets is Ownable, ERC721Enumerable {
   
   function toggleSaleIsActive() external onlyOwner {
     saleIsActive = !saleIsActive;
+    emit SaleIsActiveToggle(saleIsActive);
   }
 
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {
@@ -62,5 +114,70 @@ contract Ethets is Ownable, ERC721Enumerable {
 
   function abilityOf(uint256 tokenId) external view returns (Ability) {
     return _abilities[tokenId];
+  }
+
+  function reroll(uint256 tokenId) external returns (bool) {
+
+    ////
+    //  NOT IN PRODUCTION
+    //
+    uint8 firing_range = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    uint8 firing_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    uint8 reload_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    uint8 melee_damage = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    uint8 melee_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    uint8 magazine_capacity = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    uint8 health = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
+    randCounter = randCounter + 1;
+
+    _statistics[tokenId] = Statistics(firing_range, firing_speed, reload_speed, melee_damage, melee_speed, magazine_capacity, health);
+    //
+    //  NOT IN PRODUCTION
+    ////
+    emit TokenRerolled(tokenId);
+
+    return true;
+  }
+
+  function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Enumerable) {
+    super._beforeTokenTransfer(from, to, tokenId);
+  }
+  
+  function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {
+    return super.supportsInterface(interfaceId);
+  }
+
+  ////
+  //  URI management part from CryptoWarsGenesisSpies
+  ////
+
+  function _setBaseURI(string memory baseURI) internal virtual {
+    _baseTokenURI = baseURI;
+  }
+
+  function _baseURI() internal view override returns (string memory) {
+    return _baseTokenURI;
+  }
+
+  function setBaseURI(string memory baseURI) external onlyOwner {
+    _setBaseURI(baseURI);
+    emit BaseURLChanged(baseURI);
+  }
+
+  function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
+    string memory _tokenURI = super.tokenURI(tokenId);
+    return bytes(_tokenURI).length > 0 ? string(abi.encodePacked(_tokenURI, ".json")) : "";
   }
 }

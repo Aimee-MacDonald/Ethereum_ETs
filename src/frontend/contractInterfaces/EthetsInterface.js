@@ -145,6 +145,13 @@ export default class EthetsInterface extends BaseInterface {
         .then(contract => contract.statsOf(tokenId))
     }
   }
+
+  reroll(tokenId) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.reroll(tokenId))
+    }
+  }
   
   abilityOf(tokenId) {
     if(super.ethCheck) {
@@ -157,6 +164,13 @@ export default class EthetsInterface extends BaseInterface {
     if(super.ethCheck) {
       return super.getContract()
         .then(contract => contract.maxTokens())
+    }
+  }
+
+  setBaseURI(baseURI) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.setBaseURI(baseURI))
     }
   }
 }

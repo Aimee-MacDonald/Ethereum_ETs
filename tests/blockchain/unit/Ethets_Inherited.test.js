@@ -23,6 +23,7 @@ describe('Eth ETs', () => {
     })
 
     it('Should return a URI for the token', async () => {
+      await ethets.setBaseURI('URI')
       await ethets.mint(signers[0].address, 1)
       expect(await ethets.tokenURI(0)).to.not.equal('')
     })
