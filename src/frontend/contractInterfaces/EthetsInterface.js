@@ -3,7 +3,7 @@ import Ethets from '../artifacts/src/blockchain/contracts/Ethets.sol/Ethets.json
 
 export default class EthetsInterface extends BaseInterface {
   constructor() {
-    super('0x5FbDB2315678afecb367f032d93F642f64180aa3', Ethets.abi)
+    super('0x2688bCC3d8065eFb470C79d6c9091Cf7De369e2a', Ethets.abi)
   }
 
   name() {
