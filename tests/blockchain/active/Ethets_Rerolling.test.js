@@ -30,7 +30,7 @@ describe('Eth ETs', () => {
     expect(magazine_capacity).to.not.equal(0)
     expect(health).to.not.equal(0)
     
-    await(ethets.reroll(0))
+    await(ethets.rerollStats(0))
     
     stats = await ethets.statsOf(0)
     
@@ -41,5 +41,26 @@ describe('Eth ETs', () => {
     expect(stats.melee_speed).to.not.equal(melee_speed)
     expect(stats.magazine_capacity).to.not.equal(magazine_capacity)
     expect(stats.health).to.not.equal(health)
+  })
+
+  it('Should generate a new ability', async () => {
+    expect(await ethets.abilityOf(0)).to.equal(0)
+
+    await(ethets.rerollAbility(0))
+
+    expect(await ethets.abilityOf(0)).to.not.equal(0)
+  })
+
+  it('Should upgrade the weapon tier', async () => {
+    expect(await ethets.weaponTierOf(0)).to.equal(0)
+
+    await(ethets.upgradeWeapon(0))
+    await(ethets.upgradeWeapon(0))
+    await(ethets.upgradeWeapon(0))
+    await(ethets.upgradeWeapon(0))
+    await(ethets.upgradeWeapon(0))
+
+    expect(await ethets.weaponTierOf(0)).to.equal(5)
+    expect(ethets.upgradeWeapon(0)).to.be.revertedWith('Ethets: Weapon is already fully upgraded')
   })
 })

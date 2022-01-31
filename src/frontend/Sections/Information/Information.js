@@ -15,12 +15,12 @@ const Information = () => {
       .catch(error => console.log(error.data.message))
   }
 
-  const reroll = e => {
+  const rerollStats = e => {
     e.preventDefault()
 
     const tokenId = e.target.tokenId.value
 
-    ethets.reroll(tokenId)
+    ethets.rerollStats(tokenId)
       .then(transaction => transaction.wait())
       .then(result => console.log(result.events[0].event))
       .catch(error => console.log(error))
@@ -33,6 +33,38 @@ const Information = () => {
 
     ethets.abilityOf(tokenId)
       .then(ability => console.log(ability))
+      .catch(error => console.log(error.data.message))
+  }
+
+  const rerollAbility = e => {
+    e.preventDefault()
+
+    const tokenId = e.target.tokenId.value
+
+    ethets.rerollAbility(tokenId)
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
+      .catch(error => console.log(error.data.message))
+  }
+
+  const weaponTierOf = e => {
+    e.preventDefault()
+
+    const tokenId = e.target.tokenId.value
+
+    ethets.weaponTierOf(tokenId)
+      .then(weaponTier => console.log(weaponTier))
+      .catch(error => console.log(error.data.message))
+  }
+
+  const upgradeWeapon = e => {
+    e.preventDefault()
+
+    const tokenId = e.target.tokenId.value
+
+    ethets.upgradeWeapon(tokenId)
+      .then(transaction => transaction.wait())
+      .then(result => console.log(result.events[0].event))
       .catch(error => console.log(error.data.message))
   }
 
@@ -60,17 +92,38 @@ const Information = () => {
         <button type='submit'>Go</button>
       </form>
 
-      <form onSubmit={reroll} className='function'>
-        <p>reroll(</p>
+      <form onSubmit={rerollStats} className='function'>
+        <p>rerollStats(</p>
         <input placeholder='tokenId' id='tokenId' />
         <p>)</p>
-        <button>Reroll</button>
+        <button>Go</button>
       </form>
 
       <form onSubmit={abilityOf} className='function'>
         <p>abilityOf(</p>
         <input placeholder='tokenId' id='tokenId' />
         <p>)</p>
+        <button type='submit'>Go</button>
+      </form>
+
+      <form onSubmit={rerollAbility} className='function'>
+        <p>rerollAbility(</p>
+        <input placeholder='tokenId' id='tokenId' />
+        <p>)</p>
+        <button>Go</button>
+      </form>
+
+      <form onSubmit={weaponTierOf} className='function'>
+        <p>weaponTierOf(</p>
+        <input placeholder='tokenId' id='tokenId' />
+        <p>)</p>
+        <button type='submit'>Go</button>
+      </form>
+
+      <form onSubmit={upgradeWeapon} className='function'>
+        <p>upgradeWeapon(</p>
+          <input placeholder='tokenId' id='tokenId'/>
+          <p>)</p>
         <button type='submit'>Go</button>
       </form>
 

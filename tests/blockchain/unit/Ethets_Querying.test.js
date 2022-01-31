@@ -33,5 +33,11 @@ describe('Eth ETs', () => {
 
       expect(ability).to.equal(0)
     })
+    
+    it('Should return weapon tier by token ID', async () => {
+      const weaponTier = await ethets.weaponTierOf(0)
+
+      expect(weaponTier).to.equal(0)
+    })
   })
 })

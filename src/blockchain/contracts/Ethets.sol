@@ -19,6 +19,7 @@ contract Ethets is Ownable, ERC721Enumerable {
 
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => Ability) private _abilities;
+  mapping(uint256 => WeaponTier) private _weaponTiers;
 
   bool public saleIsActive;
   uint256 public maxTokens = 900;
@@ -51,9 +52,20 @@ contract Ethets is Ownable, ERC721Enumerable {
     DECOY
   }
 
+  enum WeaponTier {
+    TIER_0,
+    TIER_1,
+    TIER_2,
+    TIER_3,
+    TIER_4,
+    TIER_5
+  }
+
   event SaleIsActiveToggle(bool saleIsActive);
   event BaseURLChanged(string baseURI);
-  event TokenRerolled(uint256 tokenId);
+  event StatsRerolled(uint256 tokenId);
+  event AbilityRerolled(uint256 tokenId);
+  event WeaponUpgraded(uint256 tokenId);
 
   constructor() ERC721("CryptoWars Ethereum ET", "CWEE") {}
 
@@ -97,6 +109,7 @@ contract Ethets is Ownable, ERC721Enumerable {
       ////
 
       _abilities[_tokenIdTracker.current()] = Ability.NONE;
+      _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
       _tokenIdTracker.increment();
     }
 
@@ -112,11 +125,7 @@ contract Ethets is Ownable, ERC721Enumerable {
     return _statistics[tokenId];
   }
 
-  function abilityOf(uint256 tokenId) external view returns (Ability) {
-    return _abilities[tokenId];
-  }
-
-  function reroll(uint256 tokenId) external returns (bool) {
+  function rerollStats(uint256 tokenId) external returns (bool) {
 
     ////
     //  NOT IN PRODUCTION
@@ -146,8 +155,44 @@ contract Ethets is Ownable, ERC721Enumerable {
     //
     //  NOT IN PRODUCTION
     ////
-    emit TokenRerolled(tokenId);
 
+    emit StatsRerolled(tokenId);
+
+    return true;
+  }
+
+  function abilityOf(uint256 tokenId) external view returns (Ability) {
+    return _abilities[tokenId];
+  }
+
+  function rerollAbility(uint tokenId) external returns (bool) {
+
+    ////
+    //  NOT IN PRODUCTION
+    //
+    _abilities[tokenId] = Ability(uint256(keccak256(abi.encodePacked(randCounter))) % 5 + 1);
+    randCounter = randCounter + 1;
+    //
+    //  NOT IN PRODUCTION
+    ////
+
+    emit AbilityRerolled(tokenId);
+
+    return true;
+  }
+
+  function weaponTierOf(uint256 tokenId) external view returns (WeaponTier) {
+    return _weaponTiers[tokenId];
+  }
+
+  function upgradeWeapon(uint256 tokenId) external returns (bool) {
+    require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
+
+    uint256 newTier = uint256(_weaponTiers[tokenId]);
+    _weaponTiers[tokenId] = WeaponTier(newTier + 1);
+    
+    emit WeaponUpgraded(tokenId);
+    
     return true;
   }
 
