@@ -1,12 +1,12 @@
 {
   "name": "Ethereum_ETs",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "main": "server.js",
   "repository": "https://github.com/Aimee-MacDonald/Ethereum_ETs.git",
   "author": "Aimee MacDonald <aimeelmacdonald@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start_server": "node src/backend/server.js",
+    "start": "node src/backend/server.js",
     "compile_frontend": "webpack --config webpack.config.js --watch",
     "test_contracts": "npx hardhat test",
     "compile_contracts": "npx hardhat compile",

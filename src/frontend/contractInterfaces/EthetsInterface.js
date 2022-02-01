@@ -3,9 +3,9 @@ import Ethets from '../artifacts/src/blockchain/contracts/Ethets.sol/Ethets.json
 
 export default class EthetsInterface extends BaseInterface {
   constructor() {
-    super('0x5FbDB2315678afecb367f032d93F642f64180aa3', Ethets.abi)
+    super('0xEfE1bC957a98a148fde0BDF3D9CC77d52c3de569', Ethets.abi)
     // Local: 0x5FbDB2315678afecb367f032d93F642f64180aa3
-    // Kovan: 0x2688bCC3d8065eFb470C79d6c9091Cf7De369e2a
+    // Kovan: 0xEfE1bC957a98a148fde0BDF3D9CC77d52c3de569
   }
 
   name() {
