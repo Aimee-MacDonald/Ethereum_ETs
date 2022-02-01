@@ -1,6 +1,6 @@
 {
   "name": "Ethereum_ETs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "server.js",
   "repository": "https://github.com/Aimee-MacDonald/Ethereum_ETs.git",
   "author": "Aimee MacDonald <aimeelmacdonald@gmail.com>",
@@ -23,6 +23,7 @@
     "@babel/core": "^7.16.12",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
+    "@chainlink/contracts": "^0.3.1",
     "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.2",
     "@openzeppelin/contracts": "^4.4.2",
