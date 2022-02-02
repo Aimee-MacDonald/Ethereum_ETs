@@ -5,8 +5,17 @@ describe('Eth ETs', () => {
 
   beforeEach(async () => {
     signers = await ethers.getSigners()
+    
+    const MockLink = await ethers.getContractFactory('MockLink')
+    const mockLink = await MockLink.deploy()
+
+    const VRFCoordinatorMock = await ethers.getContractFactory('VRFCoordinatorMock')
+    const vRFCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
+
     const Ethets = await ethers.getContractFactory('Ethets')
-    ethets = await Ethets.deploy()
+    ethets = await Ethets.deploy(vRFCoordinatorMock.address, mockLink.address)
+
+    await mockLink.mint(ethets.address, '20000000000000000000')
   })
 
   describe('Minting', () => {

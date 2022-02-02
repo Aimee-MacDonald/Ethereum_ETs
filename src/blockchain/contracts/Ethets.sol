@@ -4,6 +4,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 ////
 //  NOT IN PRODUCTION
@@ -13,17 +14,20 @@ import "hardhat/console.sol";
 //  NOT IN PRODUCTION
 ////
 
-contract Ethets is Ownable, ERC721Enumerable {
+contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
 
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => Ability) private _abilities;
   mapping(uint256 => WeaponTier) private _weaponTiers;
+  mapping(bytes32 => uint256) private _vrfRequestToToken;
 
   bool public saleIsActive;
   uint256 public maxTokens = 900;
   string private _baseTokenURI;
+  bytes32 internal keyHash;
+  uint256 internal fee;
 
   ////
   //  NOT IN PRODUCTION
@@ -67,7 +71,14 @@ contract Ethets is Ownable, ERC721Enumerable {
   event AbilityRerolled(uint256 tokenId);
   event WeaponUpgraded(uint256 tokenId);
 
-  constructor() ERC721("CryptoWars Ethereum ET", "CWEE") {}
+  constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
+    keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
+    fee = 0.1 * 10 ** 18;
+  }
+
+  function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    _setStats(_vrfRequestToToken[requestId], randomness);
+  }
 
   function mint(address recipient, uint256 amount) external returns (bool) {
     require(saleIsActive, "Ethets: Sale must be active to mint");
@@ -76,38 +87,12 @@ contract Ethets is Ownable, ERC721Enumerable {
     require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
 
     for(uint256 i = 0; i < amount; i++) {
+      require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+      bytes32 requestId = requestRandomness(keyHash, fee);
+      _vrfRequestToToken[requestId] = _tokenIdTracker.current();
+      
       _safeMint(recipient, _tokenIdTracker.current());
-
-      ////
-      //  NOT IN PRODUCTION
-      //
-      uint8 firing_range = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-      uint8 firing_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-      uint8 reload_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-      uint8 melee_damage = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-      uint8 melee_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-      uint8 magazine_capacity = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-      uint8 health = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-      randCounter = randCounter + 1;
-
-
-      _statistics[_tokenIdTracker.current()] = Statistics(firing_range, firing_speed, reload_speed, melee_damage, melee_speed, magazine_capacity, health);
-      //
-      //  NOT IN PRODUCTION
-      ////
-
+      
       _abilities[_tokenIdTracker.current()] = Ability.NONE;
       _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
       _tokenIdTracker.increment();
@@ -121,40 +106,24 @@ contract Ethets is Ownable, ERC721Enumerable {
     emit SaleIsActiveToggle(saleIsActive);
   }
 
+  function _setStats(uint256 tokenId, uint256 randomSeed) private {
+    uint256 numStats = 7;
+
+    uint8[] memory statValues = new uint8[](numStats);
+
+    for(uint256 i = 0; i < numStats; i++) statValues[i] = uint8(uint256(keccak256(abi.encodePacked(randomSeed, i))) % 100 + 1);
+
+    _statistics[tokenId] = Statistics(statValues[0], statValues[1], statValues[2], statValues[3], statValues[4], statValues[5], statValues[6]);
+  }
+
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {
     return _statistics[tokenId];
   }
 
   function rerollStats(uint256 tokenId) external returns (bool) {
-
-    ////
-    //  NOT IN PRODUCTION
-    //
-    uint8 firing_range = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    uint8 firing_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    uint8 reload_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    uint8 melee_damage = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    uint8 melee_speed = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    uint8 magazine_capacity = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    uint8 health = uint8(uint256(keccak256(abi.encodePacked(randCounter))) % 100 + 1);
-    randCounter = randCounter + 1;
-
-    _statistics[tokenId] = Statistics(firing_range, firing_speed, reload_speed, melee_damage, melee_speed, magazine_capacity, health);
-    //
-    //  NOT IN PRODUCTION
-    ////
+    require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+    bytes32 requestId = requestRandomness(keyHash, fee);
+    _vrfRequestToToken[requestId] = _tokenIdTracker.current();
 
     emit StatsRerolled(tokenId);
 
