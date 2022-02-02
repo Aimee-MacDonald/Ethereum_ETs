@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "hardhat/console.sol";
 
 contract Random is VRFConsumerBase {
   bytes32 internal keyHash;
@@ -9,7 +10,8 @@ contract Random is VRFConsumerBase {
   
   uint256 public randomResult;
 
-  constructor() VRFConsumerBase(0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, 0xa36085F69e2889c224210F603D836748e7dC0088) {
+  //0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, 0xa36085F69e2889c224210F603D836748e7dC0088
+  constructor(address vrfCoordinator, address linkToken) VRFConsumerBase(vrfCoordinator, linkToken) {
     keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
     fee = 0.1 * 10 ** 18;
   }
