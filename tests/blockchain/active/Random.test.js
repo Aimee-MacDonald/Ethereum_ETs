@@ -19,8 +19,11 @@ describe('Random', () => {
   it('Should generate a new random value', async () => {
     expect(await random.randomResult()).to.equal(0)
     
-    await random.generateRandomNumber()
-    await vRFCoordinatorMock.callBackWithRandomness(4, 4, random.address)
+    let requestId = await random.generateRandomNumber()
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    console.log(requestId)
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 4, random.address)
     
     expect(await random.randomResult()).to.equal(4)
   })

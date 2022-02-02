@@ -23,7 +23,7 @@ contract VRFCoordinatorMock {
   }
 
   function callBackWithRandomness(
-    uint256 requestId,
+    bytes32 requestId,
     uint256 randomness,
     address consumerContract
   ) public {
