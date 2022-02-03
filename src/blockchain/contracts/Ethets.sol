@@ -1,5 +1,13 @@
 //SPDX-License-Identifier: MIT
+
+////
+//  !!!! IMPORTANT !!!!
+//
+//  Update Solidity version
 pragma solidity ^0.8.4;
+//
+//  !!!! IMPORTANT !!!!
+////
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -21,21 +29,42 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => Ability) private _abilities;
   mapping(uint256 => WeaponTier) private _weaponTiers;
-  mapping(bytes32 => uint256) private _vrfRequestToToken;
+  mapping(bytes32 => RandomnessRequest) private _randomnessRequests;
 
-  bool public saleIsActive;
-  uint256 public maxTokens = 900;
-  string private _baseTokenURI;
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Better names
+  //  Make this immutable constant
   bytes32 internal keyHash;
   uint256 internal fee;
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
 
   ////
-  //  NOT IN PRODUCTION
+  //  !!!! IMPORTANT !!!!
   //
-  uint256 public randCounter = 16;
+  //  Make this immutable constant
+  uint256 public maxTokens = 900;
   //
-  //  NOT IN PRODUCTION
+  //  !!!! IMPORTANT !!!!
   ////
+  
+  bool public saleIsActive;
+  string private _baseTokenURI;
+
+  event SaleIsActiveToggle(bool saleIsActive);
+  event BaseURLChanged(string baseURI);
+  event RandomnessRequested(bytes32 requestId);
+  event StatsRerolled(uint256 tokenId);
+  event AbilityRerolled(uint256 tokenId);
+  event WeaponUpgraded(uint256 tokenId);
+
+  struct RandomnessRequest {
+    uint256 tokenId;
+    RandomnessRequestType requestType;
+  }
 
   struct Statistics {
     uint8 firing_range;
@@ -45,6 +74,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     uint8 melee_speed;
     uint8 magazine_capacity;
     uint8 health;
+  }
+
+  enum RandomnessRequestType {
+    NONE,
+    STATISTICS,
+    ABILITY
   }
 
   enum Ability {
@@ -65,19 +100,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     TIER_5
   }
 
-  event SaleIsActiveToggle(bool saleIsActive);
-  event BaseURLChanged(string baseURI);
-  event StatsRerolled(uint256 tokenId);
-  event AbilityRerolled(uint256 tokenId);
-  event WeaponUpgraded(uint256 tokenId);
-
   constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
     keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
     fee = 0.1 * 10 ** 18;
-  }
-
-  function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-    _setStats(_vrfRequestToToken[requestId], randomness);
   }
 
   function mint(address recipient, uint256 amount) external returns (bool) {
@@ -86,10 +111,16 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     require(totalSupply() + amount <= maxTokens, "Ethers: Purchase would exceed max supply");
     require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
 
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Optimise LINK usage
     for(uint256 i = 0; i < amount; i++) {
-      require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+      require(LINK.balanceOf(address(this)) >= fee, "Ethets: Not enough LINK in the contract");
+
       bytes32 requestId = requestRandomness(keyHash, fee);
-      _vrfRequestToToken[requestId] = _tokenIdTracker.current();
+      _randomnessRequests[requestId] = RandomnessRequest(_tokenIdTracker.current(), RandomnessRequestType.STATISTICS);
+      emit RandomnessRequested(requestId);
       
       _safeMint(recipient, _tokenIdTracker.current());
       
@@ -97,64 +128,75 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
       _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
       _tokenIdTracker.increment();
     }
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
 
     return true;
   }
   
   function toggleSaleIsActive() external onlyOwner {
     saleIsActive = !saleIsActive;
+
     emit SaleIsActiveToggle(saleIsActive);
-  }
-
-  function _setStats(uint256 tokenId, uint256 randomSeed) private {
-    uint256 numStats = 7;
-
-    uint8[] memory statValues = new uint8[](numStats);
-
-    for(uint256 i = 0; i < numStats; i++) statValues[i] = uint8(uint256(keccak256(abi.encodePacked(randomSeed, i))) % 100 + 1);
-
-    _statistics[tokenId] = Statistics(statValues[0], statValues[1], statValues[2], statValues[3], statValues[4], statValues[5], statValues[6]);
   }
 
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {
     return _statistics[tokenId];
   }
-
-  function rerollStats(uint256 tokenId) external returns (bool) {
-    require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-    bytes32 requestId = requestRandomness(keyHash, fee);
-    _vrfRequestToToken[requestId] = _tokenIdTracker.current();
-
-    emit StatsRerolled(tokenId);
-
-    return true;
-  }
-
+  
   function abilityOf(uint256 tokenId) external view returns (Ability) {
     return _abilities[tokenId];
-  }
-
-  function rerollAbility(uint tokenId) external returns (bool) {
-
-    ////
-    //  NOT IN PRODUCTION
-    //
-    _abilities[tokenId] = Ability(uint256(keccak256(abi.encodePacked(randCounter))) % 5 + 1);
-    randCounter = randCounter + 1;
-    //
-    //  NOT IN PRODUCTION
-    ////
-
-    emit AbilityRerolled(tokenId);
-
-    return true;
   }
 
   function weaponTierOf(uint256 tokenId) external view returns (WeaponTier) {
     return _weaponTiers[tokenId];
   }
 
+  function rerollStats(uint256 tokenId) external returns (bool) {
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Requires CRP
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
+    require(LINK.balanceOf(address(this)) >= fee, "Ethets: Not enough LINK in the contract");
+    
+    bytes32 requestId = requestRandomness(keyHash, fee);
+    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS);
+
+    emit RandomnessRequested(requestId);
+
+    return true;
+  }
+
+  function rerollAbility(uint tokenId) external returns (bool) {
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Requires CRP
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
+    require(LINK.balanceOf(address(this)) >= fee, "Ethets: Not enough LINK in the contract");
+    
+    bytes32 requestId = requestRandomness(keyHash, fee);
+    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY);
+
+    emit RandomnessRequested(requestId);
+
+    return true;
+  }
+
   function upgradeWeapon(uint256 tokenId) external returns (bool) {
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Requires CRP
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
 
     uint256 newTier = uint256(_weaponTiers[tokenId]);
@@ -163,6 +205,41 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit WeaponUpgraded(tokenId);
     
     return true;
+  }
+
+  function _setStats(uint256 tokenId, uint256 randomSeed) private {
+    uint256 numStats = 7;
+    uint8[] memory statValues = new uint8[](numStats);
+
+    for(uint256 i = 0; i < numStats; i++) statValues[i] = uint8(uint256(keccak256(abi.encodePacked(randomSeed, i))) % 100 + 1);
+
+    _statistics[tokenId] = Statistics(statValues[0], statValues[1], statValues[2], statValues[3], statValues[4], statValues[5], statValues[6]);
+  }
+
+  function _setAbility(uint256 tokenId, uint256 randomSeed) private {
+    _abilities[tokenId] = Ability(randomSeed % 5 + 1);
+  }
+
+  function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    RandomnessRequest memory request = _randomnessRequests[requestId];
+    
+    require(request.requestType != RandomnessRequestType.NONE, "Ethets: RandomnessRequest does not have a type");
+
+    if(request.requestType == RandomnessRequestType.STATISTICS) {
+      _setStats(request.tokenId, randomness);
+      emit StatsRerolled(request.tokenId);
+    } else if(request.requestType == RandomnessRequestType.ABILITY) {
+      _setAbility(request.tokenId, randomness);
+      emit AbilityRerolled(request.tokenId);
+    }
+
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Delete RandomnessRequest
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
   }
 
   function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Enumerable) {
@@ -174,7 +251,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   ////
+  //
   //  URI management part from CryptoWarsGenesisSpies
+  //
   ////
 
   function _setBaseURI(string memory baseURI) internal virtual {

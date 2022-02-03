@@ -17,8 +17,10 @@ describe('Eth ETs', () => {
 
     await mockLink.mint(ethets.address, '20000000000000000000')
     await ethets.toggleSaleIsActive()
-    await ethets.mint(signers[0].address, 1)
-    await vRFCoordinatorMock.callBackWithRandomness(4, 4, ethets.address)
+    let requestId = await ethets.mint(signers[0].address, 1)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
   })
 
   it('Should generate new stats', async () => {
@@ -32,8 +34,10 @@ describe('Eth ETs', () => {
     expect(stats.magazine_capacity).to.equal(58)
     expect(stats.health).to.equal(10)
     
-    await(ethets.rerollStats(0))
-    await vRFCoordinatorMock.callBackWithRandomness(4, 8, ethets.address)
+    let requestId = await ethets.rerollStats(0)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 8, ethets.address)
     
     stats = await ethets.statsOf(0)
 
@@ -49,9 +53,12 @@ describe('Eth ETs', () => {
   it('Should generate a new ability', async () => {
     expect(await ethets.abilityOf(0)).to.equal(0)
 
-    await(ethets.rerollAbility(0))
+    let requestId = await ethets.rerollAbility(0)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 16, ethets.address)
 
-    expect(await ethets.abilityOf(0)).to.not.equal(0)
+    expect(await ethets.abilityOf(0)).to.equal(2)
   })
 
   it('Should upgrade the weapon tier', async () => {
