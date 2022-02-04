@@ -23,25 +23,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => WeaponTier) private _weaponTiers;
   mapping(bytes32 => RandomnessRequest) private _randomnessRequests;
 
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Better names
-  //  Make this immutable constant
-  bytes32 internal keyHash;
-  uint256 internal fee;
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
-
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Make this immutable constant
-  uint256 public maxTokens = 900;
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
+  bytes32 private immutable VRF_KEY_HASH;
+  uint256 private immutable VRF_FEE;
+  uint256 public constant MAX_TOKENS = 900;
   
   bool public saleIsActive;
   bool public hybridizationIsActive;
@@ -96,8 +80,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
-    keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
-    fee = 0.1 * 10 ** 18;
+    VRF_KEY_HASH = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
+    VRF_FEE = 0.1 * 10 ** 18;
   }
 
   function toggleSaleIsActive() external onlyOwner {
@@ -123,7 +107,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   function mint(address recipient, uint256 amount) external returns (bool) {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
-    require(totalSupply() + amount <= maxTokens, "Ethers: Purchase would exceed max supply");
+    require(totalSupply() + amount <= MAX_TOKENS, "Ethers: Purchase would exceed max supply");
     require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
 
     ////
@@ -131,9 +115,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     //
     //  Optimise LINK usage
     for(uint256 i = 0; i < amount; i++) {
-      require(LINK.balanceOf(address(this)) >= fee, "Ethets: Not enough LINK in the contract");
+      require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
-      bytes32 requestId = requestRandomness(keyHash, fee);
+      bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
       _randomnessRequests[requestId] = RandomnessRequest(_tokenIdTracker.current(), RandomnessRequestType.STATISTICS);
       emit RandomnessRequested(requestId);
       
@@ -170,9 +154,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     //
     //  !!!! IMPORTANT !!!!
     ////
-    require(LINK.balanceOf(address(this)) >= fee, "Ethets: Not enough LINK in the contract");
+    require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
-    bytes32 requestId = requestRandomness(keyHash, fee);
+    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS);
 
     emit RandomnessRequested(requestId);
@@ -188,9 +172,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     //
     //  !!!! IMPORTANT !!!!
     ////
-    require(LINK.balanceOf(address(this)) >= fee, "Ethets: Not enough LINK in the contract");
+    require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
-    bytes32 requestId = requestRandomness(keyHash, fee);
+    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY);
 
     emit RandomnessRequested(requestId);
