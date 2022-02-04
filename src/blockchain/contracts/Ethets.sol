@@ -52,9 +52,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   ////
   
   bool public saleIsActive;
+  bool public hybridizationIsActive;
   string private _baseTokenURI;
+  ISidekick private SIDEKICK;
 
   event SaleIsActiveToggle(bool saleIsActive);
+  event HybridizationIsActiveToggle(bool hybridizationIsActive);
   event BaseURLChanged(string baseURI);
   event RandomnessRequested(bytes32 requestId);
   event StatsRerolled(uint256 tokenId);
@@ -105,6 +108,26 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     fee = 0.1 * 10 ** 18;
   }
 
+  function toggleSaleIsActive() external onlyOwner {
+    saleIsActive = !saleIsActive;
+
+    emit SaleIsActiveToggle(saleIsActive);
+  }
+
+  function toggleHybridizationIsActive() external onlyOwner {
+    hybridizationIsActive = !hybridizationIsActive;
+
+    emit HybridizationIsActiveToggle(hybridizationIsActive);
+  }
+  
+  function setSidekick(address contractAddress) external onlyOwner returns (bool) {
+    require(address(SIDEKICK) == address(0), "Ethets: Sidekick has already been set");
+
+    SIDEKICK = ISidekick(contractAddress);
+
+    return true;
+  }
+
   function mint(address recipient, uint256 amount) external returns (bool) {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
@@ -133,12 +156,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     ////
 
     return true;
-  }
-  
-  function toggleSaleIsActive() external onlyOwner {
-    saleIsActive = !saleIsActive;
-
-    emit SaleIsActiveToggle(saleIsActive);
   }
 
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {
@@ -220,6 +237,24 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _abilities[tokenId] = Ability(randomSeed % 5 + 1);
   }
 
+  function hybridize(uint256 token_1, uint256 token_2) external returns (bool) {
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Requires CRP
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
+    require(hybridizationIsActive, "Ethets: Hybridization is not active");
+    require(address(SIDEKICK) != address(0), "Ethets: Sidekick contract not set");
+    require(_exists(token_1) && _exists(token_2), "Ethets: operator query for nonexistent token");
+    require(ownerOf(token_1) == _msgSender() && ownerOf(token_2) == _msgSender(), "Ethets: This token does not belong to you");
+
+    SIDEKICK.mint(_msgSender());
+
+    return true;
+  }
+
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
     RandomnessRequest memory request = _randomnessRequests[requestId];
     
@@ -253,6 +288,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   ////
   //
   //  URI management part from CryptoWarsGenesisSpies
+  //  Needs Black Magic here....
   //
   ////
 
@@ -273,4 +309,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     string memory _tokenURI = super.tokenURI(tokenId);
     return bytes(_tokenURI).length > 0 ? string(abi.encodePacked(_tokenURI, ".json")) : "";
   }
+}
+
+interface ISidekick {
+  function mint(address recipient) external returns (bool);
 }

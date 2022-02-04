@@ -16,9 +16,12 @@ describe('Eth ETs', () => {
     ethets = await Ethets.deploy(vRFCoordinatorMock.address, mockLink.address)
 
     await mockLink.mint(ethets.address, '20000000000000000000')
-    await vRFCoordinatorMock.callBackWithRandomness(4, 4, ethets.address)
     await ethets.toggleSaleIsActive()
-    await ethets.mint(signers[0].address, 1)
+
+    let requestId = await ethets.mint(signers[0].address, 1)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
   })
 
   describe('Querying', () => {
