@@ -1,13 +1,5 @@
 //SPDX-License-Identifier: MIT
-
-////
-//  !!!! IMPORTANT !!!!
-//
-//  Update Solidity version
-pragma solidity ^0.8.4;
-//
-//  !!!! IMPORTANT !!!!
-////
+pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
