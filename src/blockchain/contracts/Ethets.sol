@@ -154,13 +154,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   function rerollStats(uint256 tokenId) external returns (bool) {
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Requires CRP
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
+    require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
     CRP.transferFrom(_msgSender(), address(this), 950);
@@ -174,15 +168,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   function rerollAbility(uint tokenId) external returns (bool) {
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Requires CRP
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
+    require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
+    CRP.transferFrom(_msgSender(), address(this), 2000);
+
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY, address(0), 0);
 

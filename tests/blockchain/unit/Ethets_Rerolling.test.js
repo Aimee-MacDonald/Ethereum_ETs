@@ -35,6 +35,10 @@ describe('Eth ETs', () => {
   })
 
   describe('Stats Rerolling', () => {
+    it('Should require CRP to be set', () => {
+      expect(ethets.rerollStats(0)).to.be.revertedWith('Ethets: CRP not set')
+    })
+
     it('Should generate new stats', async () => {
       await ethets.setCRP(mockCRP.address)
       let stats = await ethets.statsOf(0)
@@ -79,15 +83,34 @@ describe('Eth ETs', () => {
   })
 
   describe('Ability Rerolling', () => {
+    it('Should require CRP to be set', () => {
+      expect(ethets.rerollAbility(0)).to.be.revertedWith('Ethets: CRP not set')
+    })
+
     it('Should generate a new ability', async () => {
+      await ethets.setCRP(mockCRP.address)
       expect(await ethets.abilityOf(0)).to.equal(0)
 
+      await mockCRP.approve(ethets.address, 2000)
+      let requestId = await ethets.rerollAbility(0)
+      requestId = await requestId.wait()
+      requestId = requestId.events[2].data
+      await vRFCoordinatorMock.callBackWithRandomness(requestId, 32, ethets.address)
+
+      expect(await ethets.abilityOf(0)).to.equal(3)
+    })
+
+    it('Should cost 2000 CRP', async () => {
+      await ethets.setCRP(mockCRP.address)
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(10000)
+
+      await mockCRP.approve(ethets.address, 2000)
       let requestId = await ethets.rerollAbility(0)
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vRFCoordinatorMock.callBackWithRandomness(requestId, 32, ethets.address)
 
-      expect(await ethets.abilityOf(0)).to.equal(3)
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(8000)
     })
   })
 
