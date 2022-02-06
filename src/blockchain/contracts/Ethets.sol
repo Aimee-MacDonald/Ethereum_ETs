@@ -30,6 +30,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   uint256 public constant MAX_TOKENS = 900;
   
   bool public saleIsActive;
+  bool public rerollingIsActive;
   bool public hybridizationIsActive;
   string private _baseTokenURI;
   
@@ -37,6 +38,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   IERC20 private CRP;
 
   event SaleIsActiveToggle(bool saleIsActive);
+  event RerollingIsActiveToggle(bool rerollingIsActive);
   event HybridizationIsActiveToggle(bool hybridizationIsActive);
   event BaseURLChanged(string baseURI);
   event RandomnessRequested(bytes32 requestId);
@@ -108,6 +110,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit SaleIsActiveToggle(saleIsActive);
   }
 
+  function toggleRerollingIsActive() external onlyOwner {
+    rerollingIsActive = !rerollingIsActive;
+
+    emit RerollingIsActiveToggle(rerollingIsActive);
+  }
+
   function toggleHybridizationIsActive() external onlyOwner {
     hybridizationIsActive = !hybridizationIsActive;
 
@@ -162,6 +170,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   function rerollStats(uint256 tokenId) external returns (bool) {
+    require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
@@ -176,6 +185,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   function rerollAbility(uint tokenId) external returns (bool) {
+    require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
