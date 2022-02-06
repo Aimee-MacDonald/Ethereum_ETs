@@ -4,6 +4,7 @@ pragma solidity ^0.8.11;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 ////
@@ -31,6 +32,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   bool public hybridizationIsActive;
   string private _baseTokenURI;
   ISidekick private SIDEKICK;
+  IERC20 private CRP;
 
   event SaleIsActiveToggle(bool saleIsActive);
   event HybridizationIsActiveToggle(bool hybridizationIsActive);
@@ -104,6 +106,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit HybridizationIsActiveToggle(hybridizationIsActive);
   }
   
+  ////
+  //  Emit Events
+  //
   function setSidekick(address contractAddress) external onlyOwner returns (bool) {
     require(address(SIDEKICK) == address(0), "Ethets: Sidekick has already been set");
 
@@ -111,6 +116,15 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
 
     return true;
   }
+
+  function setCRP(address contractAddress) external onlyOwner returns (bool) {
+    CRP = IERC20(contractAddress);
+
+    return true;
+  }
+  //
+  //
+  ////
 
   function mint(address recipient, uint256 amount) external returns (bool) {
     require(saleIsActive, "Ethets: Sale must be active to mint");
@@ -148,6 +162,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     //  !!!! IMPORTANT !!!!
     ////
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
+
+    CRP.transferFrom(_msgSender(), address(this), 950);
     
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0), 0);
