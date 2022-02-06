@@ -26,13 +26,13 @@ describe('Eth ETs', () => {
   it('Should generate new stats', async () => {
     let stats = await ethets.statsOf(0)
     
-    expect(stats.firing_range).to.equal(66)
-    expect(stats.firing_speed).to.equal(88)
-    expect(stats.reload_speed).to.equal(8)
-    expect(stats.melee_damage).to.equal(98)
-    expect(stats.melee_speed).to.equal(52)
-    expect(stats.magazine_capacity).to.equal(58)
-    expect(stats.health).to.equal(10)
+    expect(stats.firing_range).to.equal(2)
+    expect(stats.firing_speed).to.equal(53)
+    expect(stats.reload_speed).to.equal(90)
+    expect(stats.melee_damage).to.equal(16)
+    expect(stats.melee_speed).to.equal(2)
+    expect(stats.magazine_capacity).to.equal(14)
+    expect(stats.health).to.equal(54)
     
     let requestId = await ethets.rerollStats(0)
     requestId = await requestId.wait()

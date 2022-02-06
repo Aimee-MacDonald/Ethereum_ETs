@@ -43,6 +43,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   struct RandomnessRequest {
     uint256 tokenId;
     RandomnessRequestType requestType;
+    address recipient;
+    uint256 amount;
   }
 
   struct Statistics {
@@ -57,6 +59,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
 
   enum RandomnessRequestType {
     NONE,
+    MINT,
     STATISTICS,
     ABILITY
   }
@@ -79,6 +82,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     TIER_5
   }
 
+  ////
+  //
+  //  In production, these parameters can be made constant
+  //
+  ////
   constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
     VRF_KEY_HASH = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
     VRF_FEE = 0.1 * 10 ** 18;
@@ -109,27 +117,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
     require(totalSupply() + amount <= MAX_TOKENS, "Ethers: Purchase would exceed max supply");
     require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
+    require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Optimise LINK usage
-    for(uint256 i = 0; i < amount; i++) {
-      require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
+    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+    _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT, recipient, amount);
 
-      bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-      _randomnessRequests[requestId] = RandomnessRequest(_tokenIdTracker.current(), RandomnessRequestType.STATISTICS);
-      emit RandomnessRequested(requestId);
-      
-      _safeMint(recipient, _tokenIdTracker.current());
-      
-      _abilities[_tokenIdTracker.current()] = Ability.NONE;
-      _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
-      _tokenIdTracker.increment();
-    }
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
+    emit RandomnessRequested(requestId);
 
     return true;
   }
@@ -157,7 +150,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS);
+    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0), 0);
 
     emit RandomnessRequested(requestId);
 
@@ -175,7 +168,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY);
+    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY, address(0), 0);
 
     emit RandomnessRequested(requestId);
 
@@ -198,6 +191,19 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit WeaponUpgraded(tokenId);
     
     return true;
+  }
+
+  function _fullMint(address recipient, uint256 amount, uint256 randomSeed) private {
+    for(uint256 i = 0; i < amount; i++) {
+      uint256 randomness = uint256(keccak256(abi.encodePacked(randomSeed, i)));
+
+      _safeMint(recipient, _tokenIdTracker.current());
+      _setStats(_tokenIdTracker.current(), randomness);
+      _abilities[_tokenIdTracker.current()] = Ability.NONE;
+      _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
+
+      _tokenIdTracker.increment();
+    }
   }
 
   function _setStats(uint256 tokenId, uint256 randomSeed) private {
@@ -233,10 +239,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
 
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
     RandomnessRequest memory request = _randomnessRequests[requestId];
-    
     require(request.requestType != RandomnessRequestType.NONE, "Ethets: RandomnessRequest does not have a type");
 
-    if(request.requestType == RandomnessRequestType.STATISTICS) {
+    if(request.requestType == RandomnessRequestType.MINT) {
+      _fullMint(request.recipient, request.amount, randomness);
+    } else if(request.requestType == RandomnessRequestType.STATISTICS) {
       _setStats(request.tokenId, randomness);
       emit StatsRerolled(request.tokenId);
     } else if(request.requestType == RandomnessRequestType.ABILITY) {

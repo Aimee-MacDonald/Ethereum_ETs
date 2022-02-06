@@ -17,6 +17,21 @@ describe('Eth ETs', () => {
 
     await mockLink.mint(ethets.address, '20000000000000000000')
     await ethets.toggleSaleIsActive()
+
+    let requestId = await ethets.mint(signers[0].address, 1)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
+
+    requestId = await ethets.mint(signers[1].address, 1)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+
+    requestId = await ethets.mint(signers[0].address, 1)
+    requestId = await requestId.wait()
+    requestId = requestId.events[0].data
+    await vRFCoordinatorMock.callBackWithRandomness(requestId, 8, ethets.address)
   })
 
   describe('Inherited Functions', () => {
@@ -30,7 +45,7 @@ describe('Eth ETs', () => {
 
     it('Should return a URI for the token', async () => {
       await ethets.setBaseURI('URI')
-      await ethets.mint(signers[0].address, 1)
+
       expect(await ethets.tokenURI(0)).to.not.equal('')
     })
 
@@ -55,65 +70,48 @@ describe('Eth ETs', () => {
     })
 
     it('Should return the balance of a signer', async () => {
-      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(2)
     })
 
     it('Should return the owner of specific token', async () => {
-      await ethets.mint(signers[0].address, 1)
-
       expect(await ethets.ownerOf(0)).to.equal(signers[0].address)
     })
 
     it('Should approve a token', async () => {
-      await ethets.mint(signers[0].address, 1)
-
       await ethets.approve(signers[1].address, 0)
 
       expect(await ethets.getApproved(0)).to.equal(signers[1].address)
     })
 
     it('Should set approval for all tokens owned by a signer', async () => {
-      await ethets.mint(signers[0].address, 2)
-
       await ethets.setApprovalForAll(signers[1].address, true)
 
       expect(await ethets.isApprovedForAll(signers[0].address, signers[1].address)).to.equal(true)
     })
 
     it('Should transfer a token from an approved signer', async () => {
-      await ethets.mint(signers[0].address, 1)
       await ethets.approve(signers[1].address, 0)
 
-      expect(await ethets.balanceOf(signers[0].address)).to.equal(1)
-      expect(await ethets.balanceOf(signers[1].address)).to.equal(0)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(2)
+      expect(await ethets.balanceOf(signers[1].address)).to.equal(1)
 
       await ethets.connect(signers[1]).transferFrom(signers[0].address, signers[1].address, 0)
 
-      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
-      expect(await ethets.balanceOf(signers[1].address)).to.equal(1)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(1)
+      expect(await ethets.balanceOf(signers[1].address)).to.equal(2)
     })
 
     it('Should return the tokenID by index for a specified holder', async () => {
-      await ethets.mint(signers[0].address, 1)
-      await ethets.mint(signers[1].address, 1)
-      await ethets.mint(signers[0].address, 1)
-
       expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 0)).to.equal(0)
       expect(await ethets.tokenOfOwnerByIndex(signers[1].address, 0)).to.equal(1)
       expect(await ethets.tokenOfOwnerByIndex(signers[0].address, 1)).to.equal(2)
     })
 
     it('Should return the total supply', async () => {
-      expect(await ethets.totalSupply()).to.equal(0)
-
-      await ethets.mint(signers[0].address, 5)
-
-      expect(await ethets.totalSupply()).to.equal(5)
+      expect(await ethets.totalSupply()).to.equal(3)
     })
 
     it('Should return the token at an index', async () => {
-      await ethets.mint(signers[0].address, 1)
-
       expect(await ethets.tokenByIndex(0)).to.equal(0)
     })
   })
