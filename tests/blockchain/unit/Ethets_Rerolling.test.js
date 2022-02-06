@@ -115,9 +115,15 @@ describe('Eth ETs', () => {
   })
 
   describe('Weapon Upgrading', () => {
+    it('Should require CRP to be set', () => {
+      expect(ethets.upgradeWeapon(0)).to.be.revertedWith('Ethets: CRP not set')
+    })
+
     it('Should upgrade the weapon tier', async () => {
+      await ethets.setCRP(mockCRP.address)
       expect(await ethets.weaponTierOf(0)).to.equal(0)
 
+      await mockCRP.approve(ethets.address, 3500)
       await(ethets.upgradeWeapon(0))
       await(ethets.upgradeWeapon(0))
       await(ethets.upgradeWeapon(0))
@@ -126,6 +132,23 @@ describe('Eth ETs', () => {
 
       expect(await ethets.weaponTierOf(0)).to.equal(5)
       expect(ethets.upgradeWeapon(0)).to.be.revertedWith('Ethets: Weapon is already fully upgraded')
+    })
+
+    it('Should deduct relevant CRP cost', async () => {
+      await ethets.setCRP(mockCRP.address)
+      await mockCRP.approve(ethets.address, 3500)
+
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(10000)
+      await(ethets.upgradeWeapon(0))
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(9900)
+      await(ethets.upgradeWeapon(0))
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(9700)
+      await(ethets.upgradeWeapon(0))
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(9300)
+      await(ethets.upgradeWeapon(0))
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(8300)
+      await(ethets.upgradeWeapon(0))
+      expect(await mockCRP.balanceOf(signers[0].address)).to.equal(6500)
     })
   })
 })

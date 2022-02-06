@@ -23,6 +23,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => Ability) private _abilities;
   mapping(uint256 => WeaponTier) private _weaponTiers;
   mapping(bytes32 => RandomnessRequest) private _randomnessRequests;
+  mapping(uint256 => uint256) private _weaponUpgradeCosts;
 
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
@@ -31,6 +32,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   bool public saleIsActive;
   bool public hybridizationIsActive;
   string private _baseTokenURI;
+  
   ISidekick private SIDEKICK;
   IERC20 private CRP;
 
@@ -92,6 +94,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
     VRF_KEY_HASH = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
     VRF_FEE = 0.1 * 10 ** 18;
+
+    _weaponUpgradeCosts[0] = 100;
+    _weaponUpgradeCosts[1] = 200;
+    _weaponUpgradeCosts[2] = 400;
+    _weaponUpgradeCosts[3] = 1000;
+    _weaponUpgradeCosts[4] = 1800;
   }
 
   function toggleSaleIsActive() external onlyOwner {
@@ -182,14 +190,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
 
   function upgradeWeapon(uint256 tokenId) external returns (bool) {
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Requires CRP
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
+    require(address(CRP) != address(0), "Ethets: CRP not set");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
+
+    uint256 weaponTier = uint256(_weaponTiers[tokenId]);
+    uint256 upgradeCost = _weaponUpgradeCosts[weaponTier];
+    CRP.transferFrom(_msgSender(), address(this), upgradeCost);
 
     uint256 newTier = uint256(_weaponTiers[tokenId]);
     _weaponTiers[tokenId] = WeaponTier(newTier + 1);
