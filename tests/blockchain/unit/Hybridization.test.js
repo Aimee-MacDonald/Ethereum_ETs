@@ -16,7 +16,7 @@ describe('Eth ETs', () => {
     ethets = await Ethets.deploy(vrfCoordinatorMock.address, mockLink.address)
 
     const MockSideKick = await ethers.getContractFactory('MockSideKick')
-    mockSideKick = await MockSideKick.deploy()
+    mockSideKick = await MockSideKick.deploy(ethets.address)
 
     const MockCRP = await ethers.getContractFactory('MockCRP')
     mockCRP = await MockCRP.deploy()
@@ -162,20 +162,35 @@ describe('Eth ETs', () => {
     })
   })
 
-  it('Should mint a sidekick token', async () => {
-    await ethets.toggleHybridizationIsActive()
-    await ethets.setSidekick(mockSideKick.address)
-    await ethets.setCRP(mockCRP.address)
-    await mockCRP.approve(ethets.address, 10000)
+  describe('Sidekick', () => {
+    beforeEach(async () => {
+      await ethets.toggleHybridizationIsActive()
+      await ethets.setSidekick(mockSideKick.address)
+      await ethets.setCRP(mockCRP.address)
+      await mockCRP.approve(ethets.address, 10000)
 
-    expect(await mockSideKick.balanceOf(signers[0].address)).to.equal(0)
-    let requestId = await ethets.mint(signers[0].address, 2)
-    requestId = await requestId.wait()
-    requestId = requestId.events[0].data
-    await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+      let requestId = await ethets.mint(signers[0].address, 2)
+      requestId = await requestId.wait()
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+    })
     
-    await ethets.hybridize(0, 1)
-    
-    expect(await mockSideKick.balanceOf(signers[0].address)).to.equal(1)
+    it('Should mint a sidekick token', async () => {
+      expect(await mockSideKick.balanceOf(signers[0].address)).to.equal(0)
+      
+      await ethets.hybridize(0, 1)
+      
+      expect(await mockSideKick.balanceOf(signers[0].address)).to.equal(1)
+    })
+
+    it('Should forward the tokenIds to Sidekick', async () => {
+      expect(await mockSideKick.token_1()).to.equal(0)
+      expect(await mockSideKick.token_2()).to.equal(0)
+
+      await ethets.hybridize(0, 1)
+
+      expect(await mockSideKick.token_1()).to.equal(0)
+      expect(await mockSideKick.token_2()).to.equal(1)
+    })
   })
 })

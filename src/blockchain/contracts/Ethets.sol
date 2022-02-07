@@ -35,16 +35,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => uint256) private _hybridCounts;
   mapping(bytes32 => RandomnessRequest) private _randomnessRequests;
 
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Let's use a fixed array instead
-  mapping(uint256 => uint256) private _weaponUpgradeCosts;
-  mapping(uint256 => uint256) private _hybridCosts;
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
-
+  uint256[5] private _weaponUpgradeCosts;
+  uint256[10] private _hybridCosts;
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
   uint256 public constant MAX_TOKENS = 900;
@@ -310,7 +302,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     ////
     //  !!!! IMPORTANT !!!!
     //
-    //  Requires CRP
     //  Emit an Event
     //  Reentrancy
     //  Move up
@@ -327,11 +318,10 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     uint256 hybridCost = _hybridCosts[_hybridCounts[token_1]] + _hybridCosts[_hybridCounts[token_2]];
 
     CRP.transferFrom(_msgSender(), address(this), hybridCost);
+    SIDEKICK.mint(token_1, token_2);
 
     _hybridCounts[token_1]++;
     _hybridCounts[token_2]++;
-
-    SIDEKICK.mint(_msgSender());
 
     return true;
   }
@@ -403,5 +393,5 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
 }
 
 interface ISidekick {
-  function mint(address recipient) external returns (bool);
+  function mint(uint256 tokenId_1, uint256 tokenId_2) external returns (bool);
 }

@@ -48,5 +48,9 @@ describe('Eth ETs', () => {
 
       expect(weaponTier).to.equal(0)
     })
+
+    it('Should return the hybrid count of a token', async () => {
+      expect(await ethets.hybridCountOf(0)).to.equal(0)
+    })
   })
 })

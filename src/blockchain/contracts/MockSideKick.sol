@@ -8,12 +8,26 @@ contract MockSideKick is ERC721 {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
 
-  constructor() ERC721("CryptoWars Sidekick", "CWSK") {}
+  uint256 public token_1;
+  uint256 public token_2;
 
-  function mint(address recipient) external returns (bool) {
-    _safeMint(recipient, _tokenIdTracker.current());
+  IEthet immutable private ETHET;
+
+  constructor(address ethetAddress) ERC721("CryptoWars Sidekick", "CWSK") {
+    ETHET = IEthet(ethetAddress);
+  }
+
+  function mint(uint256 tokenId_1, uint256 tokenId_2) external returns (bool) {
+    address tokenOwner = ETHET.ownerOf(tokenId_1);
+    token_1 = tokenId_1;
+    token_2 = tokenId_2;
+    _safeMint(tokenOwner, _tokenIdTracker.current());
     _tokenIdTracker.increment();
 
     return true;
   }
+}
+
+interface IEthet {
+  function ownerOf(uint256 tokenId) external view returns (address);
 }
