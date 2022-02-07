@@ -57,6 +57,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   event StatsRerolled(uint256 tokenId);
   event AbilityRerolled(uint256 tokenId);
   event WeaponUpgraded(uint256 tokenId);
+  event SidekickAddressSet(address contractAddress);
+  event CRPAddressSet(address contractAddress);
 
   struct RandomnessRequest {
     uint256 tokenId;
@@ -144,27 +146,20 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
 
     emit HybridizationIsActiveToggle(hybridizationIsActive);
   }
-  
-  ////
-  //  Emit Events
-  //
-  function setSidekick(address contractAddress) external onlyOwner returns (bool) {
-    require(address(SIDEKICK) == address(0), "Ethets: Sidekick has already been set");
 
+  function setSidekick(address contractAddress) external onlyOwner{
+    require(address(SIDEKICK) == address(0), "Ethets: Sidekick has already been set");
     SIDEKICK = ISidekick(contractAddress);
 
-    return true;
+    emit SidekickAddressSet(contractAddress);
   }
 
-  function setCRP(address contractAddress) external onlyOwner returns (bool) {
+  function setCRP(address contractAddress) external onlyOwner {
+    require(address(CRP) == address(0), "Ethets: Sidekick has already been set");
     CRP = IERC20(contractAddress);
 
-    return true;
+    emit CRPAddressSet(contractAddress);
   }
-  //
-  //
-  ////
-
 
   ////
   //  !!!! IMPORTANT !!!!
@@ -173,7 +168,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   //
   //  !!!! IMPORTANT !!!!
   ////
-  function mint(address recipient, uint256 amount) external returns (bool) {
+  function mint(address recipient, uint256 amount) external {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
     require(totalSupply() + amount <= MAX_TOKENS, "Ethers: Purchase would exceed max supply");
@@ -184,8 +179,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT, recipient, amount);
 
     emit RandomnessRequested(requestId);
-
-    return true;
   }
 
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {
@@ -207,7 +200,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   //
   //  !!!! IMPORTANT !!!!
   ////
-  function rerollStats(uint256 tokenId) external returns (bool) {
+  function rerollStats(uint256 tokenId) external {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
@@ -218,8 +211,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0), 0);
 
     emit RandomnessRequested(requestId);
-
-    return true;
   }
 
   ////
@@ -229,7 +220,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   //
   //  !!!! IMPORTANT !!!!
   ////
-  function rerollAbility(uint tokenId) external returns (bool) {
+  function rerollAbility(uint tokenId) external {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
@@ -240,8 +231,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY, address(0), 0);
 
     emit RandomnessRequested(requestId);
-
-    return true;
   }
 
   ////
@@ -251,7 +240,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   //
   //  !!!! IMPORTANT !!!!
   ////
-  function upgradeWeapon(uint256 tokenId) external returns (bool) {
+  function upgradeWeapon(uint256 tokenId) external {
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
 
@@ -263,8 +252,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _weaponTiers[tokenId] = WeaponTier(newTier + 1);
     
     emit WeaponUpgraded(tokenId);
-    
-    return true;
   }
 
   function _fullMint(address recipient, uint256 amount, uint256 randomSeed) private {
