@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 ////
@@ -25,7 +26,7 @@ import "hardhat/console.sol";
 //  !!!! IMPORTANT !!!!
 ////
 
-contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
+contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
 
@@ -59,6 +60,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   event WeaponUpgraded(uint256 tokenId);
   event SidekickAddressSet(address contractAddress);
   event CRPAddressSet(address contractAddress);
+  event TokensHybridized(uint256 token_1, uint256 token_2);
 
   struct RandomnessRequest {
     uint256 tokenId;
@@ -161,14 +163,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit CRPAddressSet(contractAddress);
   }
 
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Reentrancy
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
-  function mint(address recipient, uint256 amount) external {
+  function mint(address recipient, uint256 amount) external nonReentrant {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
     require(totalSupply() + amount <= MAX_TOKENS, "Ethers: Purchase would exceed max supply");
@@ -193,14 +188,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     return _weaponTiers[tokenId];
   }
 
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Reentrancy
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
-  function rerollStats(uint256 tokenId) external {
+  function hybridCountOf(uint256 tokenId) external view returns (uint256) {
+    return _hybridCounts[tokenId];
+  }
+
+  function rerollStats(uint256 tokenId) external nonReentrant {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
@@ -213,14 +205,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit RandomnessRequested(requestId);
   }
 
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Reentrancy
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
-  function rerollAbility(uint tokenId) external {
+  function rerollAbility(uint tokenId) external nonReentrant {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
@@ -233,14 +218,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     emit RandomnessRequested(requestId);
   }
 
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Reentrancy
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
-  function upgradeWeapon(uint256 tokenId) external {
+  function upgradeWeapon(uint256 tokenId) external nonReentrant {
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
 
@@ -252,6 +230,25 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _weaponTiers[tokenId] = WeaponTier(newTier + 1);
     
     emit WeaponUpgraded(tokenId);
+  }
+
+  function hybridize(uint256 token_1, uint256 token_2) external nonReentrant {
+    require(hybridizationIsActive, "Ethets: Hybridization is not active");
+    require(address(SIDEKICK) != address(0), "Ethets: Sidekick contract not set");
+    require(address(CRP) != address(0), "Ethets: CRP not set");
+    require(_exists(token_1) && _exists(token_2), "Ethets: operator query for nonexistent token");
+    require(ownerOf(token_1) == _msgSender() && ownerOf(token_2) == _msgSender(), "Ethets: This token does not belong to you");
+    require(_hybridCounts[token_1] < 10 && _hybridCounts[token_2] < 10, "Ethets: Hybridization limit reached");
+
+    uint256 hybridCost = _hybridCosts[_hybridCounts[token_1]] + _hybridCosts[_hybridCounts[token_2]];
+
+    CRP.transferFrom(_msgSender(), address(this), hybridCost);
+    SIDEKICK.mint(token_1, token_2);
+
+    _hybridCounts[token_1]++;
+    _hybridCounts[token_2]++;
+
+    emit TokensHybridized(token_1, token_2);
   }
 
   function _fullMint(address recipient, uint256 amount, uint256 randomSeed) private {
@@ -266,7 +263,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
       _tokenIdTracker.increment();
     }
   }
-
   
   function _setStats(uint256 tokenId, uint256 randomSeed) private {
     uint256 numStats = 7;
@@ -283,38 +279,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _abilities[tokenId] = Ability(randomSeed % 5 + 1);
 
     emit AbilityRerolled(tokenId);
-  }
-
-  function hybridize(uint256 token_1, uint256 token_2) external returns (bool) {
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Emit an Event
-    //  Reentrancy
-    //  Move up
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
-    require(hybridizationIsActive, "Ethets: Hybridization is not active");
-    require(address(SIDEKICK) != address(0), "Ethets: Sidekick contract not set");
-    require(address(CRP) != address(0), "Ethets: CRP not set");
-    require(_exists(token_1) && _exists(token_2), "Ethets: operator query for nonexistent token");
-    require(ownerOf(token_1) == _msgSender() && ownerOf(token_2) == _msgSender(), "Ethets: This token does not belong to you");
-    require(_hybridCounts[token_1] < 10 && _hybridCounts[token_2] < 10, "Ethets: Hybridization limit reached");
-
-    uint256 hybridCost = _hybridCosts[_hybridCounts[token_1]] + _hybridCosts[_hybridCounts[token_2]];
-
-    CRP.transferFrom(_msgSender(), address(this), hybridCost);
-    SIDEKICK.mint(token_1, token_2);
-
-    _hybridCounts[token_1]++;
-    _hybridCounts[token_2]++;
-
-    return true;
-  }
-
-  function hybridCountOf(uint256 tokenId) external view returns (uint256) {
-    return _hybridCounts[tokenId];
   }
 
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
