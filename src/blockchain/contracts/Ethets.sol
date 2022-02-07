@@ -15,6 +15,16 @@ import "hardhat/console.sol";
 //  NOT IN PRODUCTION
 ////
 
+////
+//  !!!! IMPORTANT !!!!
+//
+//  Withdraw ETH
+//  Withdraw LINK
+//  Withdraw CRP
+//
+//  !!!! IMPORTANT !!!!
+////
+
 contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
@@ -22,8 +32,18 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => Ability) private _abilities;
   mapping(uint256 => WeaponTier) private _weaponTiers;
+  mapping(uint256 => uint256) private _hybridCounts;
   mapping(bytes32 => RandomnessRequest) private _randomnessRequests;
+
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Let's use a fixed array instead
   mapping(uint256 => uint256) private _weaponUpgradeCosts;
+  mapping(uint256 => uint256) private _hybridCosts;
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
 
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
@@ -102,6 +122,17 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     _weaponUpgradeCosts[2] = 400;
     _weaponUpgradeCosts[3] = 1000;
     _weaponUpgradeCosts[4] = 1800;
+
+    _hybridCosts[0] = 100;
+    _hybridCosts[1] = 250;
+    _hybridCosts[2] = 550;
+    _hybridCosts[3] = 1150;
+    _hybridCosts[4] = 1750;
+    _hybridCosts[5] = 2350;
+    _hybridCosts[6] = 2950;
+    _hybridCosts[7] = 3550;
+    _hybridCosts[8] = 3550;
+    _hybridCosts[9] = 3550;
   }
 
   function toggleSaleIsActive() external onlyOwner {
@@ -142,6 +173,14 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   //
   ////
 
+
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Reentrancy
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
   function mint(address recipient, uint256 amount) external returns (bool) {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
@@ -169,6 +208,13 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     return _weaponTiers[tokenId];
   }
 
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Reentrancy
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
   function rerollStats(uint256 tokenId) external returns (bool) {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
@@ -184,6 +230,13 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     return true;
   }
 
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Reentrancy
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
   function rerollAbility(uint tokenId) external returns (bool) {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
@@ -199,6 +252,13 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     return true;
   }
 
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Reentrancy
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
   function upgradeWeapon(uint256 tokenId) external returns (bool) {
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
@@ -228,6 +288,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     }
   }
 
+  
   function _setStats(uint256 tokenId, uint256 randomSeed) private {
     uint256 numStats = 7;
     uint8[] memory statValues = new uint8[](numStats);
@@ -235,10 +296,14 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     for(uint256 i = 0; i < numStats; i++) statValues[i] = uint8(uint256(keccak256(abi.encodePacked(randomSeed, i))) % 100 + 1);
 
     _statistics[tokenId] = Statistics(statValues[0], statValues[1], statValues[2], statValues[3], statValues[4], statValues[5], statValues[6]);
+
+    emit StatsRerolled(tokenId);
   }
 
   function _setAbility(uint256 tokenId, uint256 randomSeed) private {
     _abilities[tokenId] = Ability(randomSeed % 5 + 1);
+
+    emit AbilityRerolled(tokenId);
   }
 
   function hybridize(uint256 token_1, uint256 token_2) external returns (bool) {
@@ -246,17 +311,33 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
     //  !!!! IMPORTANT !!!!
     //
     //  Requires CRP
+    //  Emit an Event
+    //  Reentrancy
+    //  Move up
     //
     //  !!!! IMPORTANT !!!!
     ////
     require(hybridizationIsActive, "Ethets: Hybridization is not active");
     require(address(SIDEKICK) != address(0), "Ethets: Sidekick contract not set");
+    require(address(CRP) != address(0), "Ethets: CRP not set");
     require(_exists(token_1) && _exists(token_2), "Ethets: operator query for nonexistent token");
     require(ownerOf(token_1) == _msgSender() && ownerOf(token_2) == _msgSender(), "Ethets: This token does not belong to you");
+    require(_hybridCounts[token_1] < 10 && _hybridCounts[token_2] < 10, "Ethets: Hybridization limit reached");
+
+    uint256 hybridCost = _hybridCosts[_hybridCounts[token_1]] + _hybridCosts[_hybridCounts[token_2]];
+
+    CRP.transferFrom(_msgSender(), address(this), hybridCost);
+
+    _hybridCounts[token_1]++;
+    _hybridCounts[token_2]++;
 
     SIDEKICK.mint(_msgSender());
 
     return true;
+  }
+
+  function hybridCountOf(uint256 tokenId) external view returns (uint256) {
+    return _hybridCounts[tokenId];
   }
 
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
@@ -267,10 +348,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
       _fullMint(request.recipient, request.amount, randomness);
     } else if(request.requestType == RandomnessRequestType.STATISTICS) {
       _setStats(request.tokenId, randomness);
-      emit StatsRerolled(request.tokenId);
     } else if(request.requestType == RandomnessRequestType.ABILITY) {
       _setAbility(request.tokenId, randomness);
-      emit AbilityRerolled(request.tokenId);
     }
 
     ////
@@ -287,6 +366,13 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase {
   }
   
   function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {
+  ////
+  //  !!!! IMPORTANT !!!!
+  //
+  //  Extra something to support ERC20?
+  //
+  //  !!!! IMPORTANT !!!!
+  ////
     return super.supportsInterface(interfaceId);
   }
 
