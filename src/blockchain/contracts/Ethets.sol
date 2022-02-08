@@ -295,13 +295,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
       _setAbility(request.tokenId, randomness);
     }
 
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Delete RandomnessRequest
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
+    delete _randomnessRequests[requestId];
   }
 
   function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Enumerable) {
