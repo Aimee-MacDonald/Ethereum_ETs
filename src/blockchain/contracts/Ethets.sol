@@ -17,13 +17,11 @@ import "hardhat/console.sol";
 ////
 
 ////
-//  !!!! IMPORTANT !!!!
 //
-//  Withdraw ETH
-//  Withdraw LINK
-//  Withdraw CRP
+//  Assign Classes
+//  Reserved Tokens
+//  1 of 1 / Special Tokens
 //
-//  !!!! IMPORTANT !!!!
 ////
 
 contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
@@ -220,6 +218,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit RandomnessRequested(requestId);
   }
 
+  ////
+  //
+  //  Do we need a toggle here?
+  //
+  ////
   function upgradeWeapon(uint256 tokenId) external nonReentrant {
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
@@ -336,6 +339,20 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
     string memory _tokenURI = super.tokenURI(tokenId);
     return bytes(_tokenURI).length > 0 ? string(abi.encodePacked(_tokenURI, ".json")) : "";
+  }
+
+  function withdrawETH() external onlyOwner {
+    payable(owner()).transfer(address(this).balance);
+  }
+
+  function withdrawLINK() external onlyOwner {
+    LINK.transfer(owner(), LINK.balanceOf(address(this)));
+  }
+
+  function withdrawCRP() external onlyOwner {
+    require(address(CRP) != address(0), "Ethets: CRP not set");
+
+    CRP.transfer(owner(), CRP.balanceOf(address(this)));
   }
 }
 
