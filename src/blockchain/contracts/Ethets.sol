@@ -41,6 +41,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
   uint256 public constant MAX_TOKENS = 900;
+  uint256 public constant MINTING_PRICE = 35000000000000000; //0.035 eth
   
   bool public saleIsActive;
   bool public rerollingIsActive;
@@ -163,11 +164,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit CRPAddressSet(contractAddress);
   }
 
-  function mint(address recipient, uint256 amount) external nonReentrant {
+  function mint(address recipient, uint256 amount) external payable nonReentrant {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
     require(totalSupply() + amount <= MAX_TOKENS, "Ethers: Purchase would exceed max supply");
     require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
+    require(msg.value >= MINTING_PRICE * amount, "Not enough ETH for transaction");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);

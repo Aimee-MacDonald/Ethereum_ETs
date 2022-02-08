@@ -61,7 +61,8 @@ describe('Eth ETs', () => {
       await ethets.toggleHybridizationIsActive()
       await ethets.setSidekick(mockSideKick.address)
       await ethets.setCRP(mockCRP.address)
-      let requestId = await ethets.mint(signers[0].address, 3)
+
+      let requestId = await ethets.mint(signers[0].address, 3, {value: ethers.utils.parseEther('0.10500000000000001')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
@@ -75,7 +76,7 @@ describe('Eth ETs', () => {
     })
   
     it('Should revert if either token does not belong to the caller', async () => {
-      requestId = await ethets.mint(signers[1].address, 1)
+      requestId = await ethets.mint(signers[1].address, 1, {value: ethers.utils.parseEther('0.035')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
@@ -107,7 +108,7 @@ describe('Eth ETs', () => {
     beforeEach(async () => {
       await ethets.toggleHybridizationIsActive()
       await ethets.setSidekick(mockSideKick.address)
-      let requestId = await ethets.mint(signers[0].address, 3)
+      let requestId = await ethets.mint(signers[0].address, 3, {value: ethers.utils.parseEther('0.10500000000000001')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
@@ -169,7 +170,7 @@ describe('Eth ETs', () => {
       await ethets.setCRP(mockCRP.address)
       await mockCRP.approve(ethets.address, 10000)
 
-      let requestId = await ethets.mint(signers[0].address, 2)
+      let requestId = await ethets.mint(signers[0].address, 2, {value: ethers.utils.parseEther('0.07')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)

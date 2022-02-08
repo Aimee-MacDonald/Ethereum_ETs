@@ -1,4 +1,5 @@
 const { expect } = require('chai')
+const { ethers } = require('hardhat')
 
 describe('Eth ETs', () => {
   let signers, ethets, vrfCoordinatorMock
@@ -23,7 +24,7 @@ describe('Eth ETs', () => {
       expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
       
       await ethets.toggleSaleIsActive()
-      let requestId = await ethets.mint(signers[0].address, 1)
+      let requestId = await ethets.mint(signers[0].address, 1, {value: ethers.utils.parseEther('0.035')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
@@ -35,12 +36,24 @@ describe('Eth ETs', () => {
       expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
       
       await ethets.toggleSaleIsActive()
-      let requestId = await ethets.mint(signers[0].address, 5)
+      let requestId = await ethets.mint(signers[0].address, 5, {value: ethers.utils.parseEther('0.17500000000000002')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
 
       expect(await ethets.balanceOf(signers[0].address)).to.equal(5)
+    })
+
+    it('Should cost 0.035 ETH per token to mint', async () => {
+      expect(await ethers.provider.getBalance(signers[0].address)).to.equal('9998216613083980262353')
+
+      await ethets.toggleSaleIsActive()
+      let requestId = await ethets.mint(signers[0].address, 5, {value: ethers.utils.parseEther('0.17500000000000002')})
+      requestId = await requestId.wait()
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
+
+      expect(await ethers.provider.getBalance(signers[0].address)).to.equal('9998040697641972938797')
     })
 
     it('Should toggle saleIsActive', async () => {
@@ -72,7 +85,7 @@ describe('Eth ETs', () => {
       await ethets.toggleSaleIsActive()
       
       for(let i = 0; i < 20; i++) {
-        let requestId = await ethets.mint(signers[i].address, 30)
+        let requestId = await ethets.mint(signers[i].address, 30, {value: ethers.utils.parseEther('1.05')})
         requestId = await requestId.wait()
         requestId = requestId.events[0].data
         await vrfCoordinatorMock.callBackWithRandomness(requestId, 2 * i, ethets.address)
@@ -87,7 +100,7 @@ describe('Eth ETs', () => {
       }
 
       for(let i = 0; i < 10; i++) {
-        let requestId = await ethets.mint(signers[i].address, 30)
+        let requestId = await ethets.mint(signers[i].address, 30, {value: ethers.utils.parseEther('1.05')})
         requestId = await requestId.wait()
         requestId = requestId.events[0].data
         await vrfCoordinatorMock.callBackWithRandomness(requestId, 2 * i, ethets.address)
@@ -102,7 +115,7 @@ describe('Eth ETs', () => {
 
     it('Should allow a maximum of 30 tokens per wallet when minting', async () => {
       await ethets.toggleSaleIsActive()
-      let requestId = await ethets.mint(signers[0].address, 30)
+      let requestId = await ethets.mint(signers[0].address, 30, {value: ethers.utils.parseEther('1.05')})
       requestId = await requestId.wait()
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)

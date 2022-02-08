@@ -22,7 +22,7 @@ describe('Eth ETs', () => {
     await mockCRP.mint(signers[0].address, 10000)
 
     await ethets.toggleSaleIsActive()
-    let requestId = await ethets.mint(signers[0].address, 1)
+    let requestId = await ethets.mint(signers[0].address, 1, {value: ethers.utils.parseEther('0.035')})
     requestId = await requestId.wait()
     requestId = requestId.events[0].data
     await vRFCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
