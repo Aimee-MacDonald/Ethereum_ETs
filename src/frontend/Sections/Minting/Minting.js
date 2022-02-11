@@ -14,7 +14,7 @@ const Minting = () => {
     ethets.mint(recipient, amount)
       .then(transaction => transaction.wait())
       .then(result => console.log(result.events[0].event))
-      .catch(error => console.log(error.data.message))
+      .catch(error => console.log(error))
   }
 
   const saleIsActive = () => ethets.saleIsActive().then(saleIsActive => console.log(saleIsActive))

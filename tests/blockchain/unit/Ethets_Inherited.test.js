@@ -44,9 +44,9 @@ describe('Eth ETs', () => {
     })
 
     it('Should return a URI for the token', async () => {
-      await ethets.setBaseURI('URI')
+      await ethets.setBaseURI('https://ipfs.io/ipfs/QmXqdNcuehdAWi8NougVtrfqiF1XMVmZBwWJdMH4W6sdch/')
 
-      expect(await ethets.tokenURI(0)).to.not.equal('')
+      expect(await ethets.tokenURI(4)).to.equal('data:application/json;base64,eyJuYW1lIjoiQ3J5cHRvV2FycyBFdGhlcmV1bSBFVCAjNCIsICJhdHRyaWJ1dGVzIjpbeyJ0cmFpdF90eXBlIjoiZmlyaW5nX3JhbmdlIiwidmFsdWUiOiIwIn0seyJ0cmFpdF90eXBlIjoiZmlyaW5nX3NwZWVkIiwidmFsdWUiOiIwIn0seyJ0cmFpdF90eXBlIjoicmVsb2FkX3NwZWVkIiwidmFsdWUiOiIwIn0seyJ0cmFpdF90eXBlIjoibWVsZWVfZGFtYWdlIiwidmFsdWUiOiIwIn0seyJ0cmFpdF90eXBlIjoibWVsZWVfc3BlZWQiLCJ2YWx1ZSI6IjAifSx7InRyYWl0X3R5cGUiOiJtYWdhemluZV9jYXBhY2l0eSIsInZhbHVlIjoiMCJ9LHsidHJhaXRfdHlwZSI6InJlbG9hZF9zcGVlZCIsInZhbHVlIjoiMCJ9XSwgImltYWdlIjoiaHR0cHM6Ly9pcGZzLmlvL2lwZnMvUW1YcWROY3VlaGRBV2k4Tm91Z1Z0cmZxaUYxWE1WbVpCd1dKZE1INFc2c2RjaC80LnBuZyJ9')
     })
 
     it('Should return the Owner of the contract', async () => {

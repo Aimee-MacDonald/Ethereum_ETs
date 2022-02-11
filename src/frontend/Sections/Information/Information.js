@@ -96,7 +96,7 @@ const Information = () => {
         <p>rerollStats(</p>
         <input placeholder='tokenId' id='tokenId' />
         <p>)</p>
-        <button>Go</button>
+        <button type='submit'>Go</button>
       </form>
 
       <form onSubmit={abilityOf} className='function'>
@@ -110,7 +110,7 @@ const Information = () => {
         <p>rerollAbility(</p>
         <input placeholder='tokenId' id='tokenId' />
         <p>)</p>
-        <button>Go</button>
+        <button type='submit'>Go</button>
       </form>
 
       <form onSubmit={weaponTierOf} className='function'>

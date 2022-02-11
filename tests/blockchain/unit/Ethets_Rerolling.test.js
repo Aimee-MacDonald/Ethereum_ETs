@@ -132,11 +132,13 @@ describe('Eth ETs', () => {
   })
 
   describe('Weapon Upgrading', () => {
-    it('Should require CRP to be set', () => {
+    it('Should require CRP to be set', async () => {
+      await ethets.toggleRerollingIsActive()
       expect(ethets.upgradeWeapon(0)).to.be.revertedWith('Ethets: CRP not set')
     })
 
     it('Should upgrade the weapon tier', async () => {
+      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
       expect(await ethets.weaponTierOf(0)).to.equal(0)
 
@@ -152,6 +154,7 @@ describe('Eth ETs', () => {
     })
 
     it('Should deduct relevant CRP cost', async () => {
+      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
       await mockCRP.approve(ethets.address, 3500)
 

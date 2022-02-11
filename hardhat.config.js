@@ -30,7 +30,7 @@ module.exports = {
     hardhat: {
       chainId: 1337
     },
-    kovan: {
+    testnet: {
       url: process.env.RPC_URL,
       accounts: [process.env.PRIVATE_KEY]
     }

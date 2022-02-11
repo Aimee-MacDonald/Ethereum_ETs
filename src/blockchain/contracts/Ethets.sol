@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
+import "./Base64.sol";
+
 ////
 //  NOT IN PRODUCTION
 //
@@ -38,7 +40,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   uint256[10] private _hybridCosts;
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
-  uint256 public constant MAX_TOKENS = 900;
+  uint256 public constant MAX_TOKENS = 900; //  8333 in production
   uint256 public constant MINTING_PRICE = 35000000000000000; //0.035 eth
   
   bool public saleIsActive;
@@ -109,8 +111,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   //
   ////
   constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
-    VRF_KEY_HASH = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
-    VRF_FEE = 0.1 * 10 ** 18;
+    // *kovan* VRF_KEY_HASH = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
+    // *kovan* VRF_FEE = 0.1 * 10 ** 18;
+
+    VRF_KEY_HASH = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+    VRF_FEE = 0.0001 * 10 ** 18;
 
     _weaponUpgradeCosts[0] = 100;
     _weaponUpgradeCosts[1] = 200;
@@ -156,7 +161,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   }
 
   function setCRP(address contractAddress) external onlyOwner {
-    require(address(CRP) == address(0), "Ethets: Sidekick has already been set");
+    require(address(CRP) == address(0), "Ethets: CRP has already been set");
     CRP = IERC20(contractAddress);
 
     emit CRPAddressSet(contractAddress);
@@ -176,7 +181,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit RandomnessRequested(requestId);
   }
 
-  function statsOf(uint256 tokenId) external view returns (Statistics memory) {
+  function statsOf(uint256 tokenId) public view returns (Statistics memory) {
     return _statistics[tokenId];
   }
   
@@ -218,12 +223,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit RandomnessRequested(requestId);
   }
 
-  ////
-  //
-  //  Do we need a toggle here?
-  //
-  ////
   function upgradeWeapon(uint256 tokenId) external nonReentrant {
+    require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
 
@@ -316,13 +317,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     return super.supportsInterface(interfaceId);
   }
 
-  ////
-  //
-  //  URI management part from CryptoWarsGenesisSpies
-  //  Needs Black Magic here....
-  //
-  ////
-
   function _setBaseURI(string memory baseURI) internal virtual {
     _baseTokenURI = baseURI;
   }
@@ -336,10 +330,126 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit BaseURLChanged(baseURI);
   }
 
-  function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
-    string memory _tokenURI = super.tokenURI(tokenId);
-    return bytes(_tokenURI).length > 0 ? string(abi.encodePacked(_tokenURI, ".json")) : "";
+  function _toString(uint256 number) internal pure returns (string memory) {
+    bytes memory buffer = new bytes(32);
+    
+    assembly {
+      mstore(buffer, 0)
+    }
+
+    uint256 str = 0;
+    uint256 strLength = 0;
+    
+    unchecked {
+      do {
+        uint256 digit = (number % 10) + 48;
+        str = (str >> 8) | (digit << 248);
+        number /= 10;
+        strLength++;
+      } while (number > 0);
+    }
+    
+    uint256 length = buffer.length;
+
+    assembly {
+      let shift := shl(3, sub(32, strLength))
+      let strc := shl(shift, shr(shift, str))
+
+      let bufferptr := add(buffer, add(0x20, length))
+      mstore(bufferptr, strc)
+      mstore(buffer, add(length, strLength))
+    }
+
+    return string(buffer);
   }
+  
+  function appendString(bytes memory buffer, string memory str) internal pure {
+    uint256 strLength = bytes(str).length;
+    uint256 length = buffer.length;
+
+    assembly {
+      let strptr := add(str, 0x20)
+      let bufferptr := add(buffer, add(0x20, length))
+      let l := strLength
+
+      for {} gt(l, 31) { l := sub(l, 32) } { 
+        mstore(bufferptr, mload(strptr))
+        strptr := add(strptr, 32)
+        bufferptr := add(bufferptr, 32)
+      }
+
+      if gt(l, 0) {
+        let shift := shl(3, sub(32, l))
+        let strc := shl(shift, shr(shift, mload(strptr)))
+        mstore(bufferptr, strc)
+      }
+  
+      mstore(buffer, add(length, strLength))
+    }        
+  }
+
+  function _attributes(uint256 tokenId) private view returns (string memory) {
+    Statistics memory tokenStats = statsOf(tokenId);
+    bytes memory attributesBuffer = new bytes(320);
+
+    assembly { mstore(attributesBuffer, 0) }
+
+    appendString(attributesBuffer, '[{"trait_type":"firing_range","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.firing_range));
+    appendString(attributesBuffer, '"},');
+
+    appendString(attributesBuffer, '{"trait_type":"firing_speed","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.firing_speed));
+    appendString(attributesBuffer, '"},');
+
+    appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.reload_speed));
+    appendString(attributesBuffer, '"},');
+    
+    appendString(attributesBuffer, '{"trait_type":"melee_damage","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.melee_damage));
+    appendString(attributesBuffer, '"},');
+    
+    appendString(attributesBuffer, '{"trait_type":"melee_speed","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.melee_speed));
+    appendString(attributesBuffer, '"},');
+    
+    appendString(attributesBuffer, '{"trait_type":"magazine_capacity","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.magazine_capacity));
+    appendString(attributesBuffer, '"},');
+    
+    appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
+    appendString(attributesBuffer, _toString(tokenStats.health));
+    appendString(attributesBuffer, '"}]');
+    
+    return string(attributesBuffer);
+  }
+
+  function imageUrlOf(uint256 tokenId) public view returns (string memory) {
+    bytes memory urlBuffer = new bytes(50);
+    assembly { mstore(urlBuffer, 0) }
+    
+    appendString(urlBuffer, _baseTokenURI);
+    appendString(urlBuffer, _toString(tokenId));
+    appendString(urlBuffer, ".png");
+
+    return string(urlBuffer);
+  }
+
+  function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
+    string memory attributes = _attributes(tokenId);
+    string memory image = imageUrlOf(tokenId);
+
+    bytes memory json = abi.encodePacked('{"name":"CryptoWars Ethereum ET #', _toString(tokenId), '", "attributes":', attributes, ', "image":"', image, '"}');
+    
+    return string(abi.encodePacked('data:application/json;base64,', Base64.encode(json)));
+  }
+
+  ////
+  //
+  //  Emit events for withdrawal functions
+  //
+  ////
 
   function withdrawETH() external onlyOwner {
     payable(owner()).transfer(address(this).balance);

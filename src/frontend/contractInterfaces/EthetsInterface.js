@@ -1,10 +1,12 @@
 import BaseInterface from './BaseInterface'
 import Ethets from '../artifacts/src/blockchain/contracts/Ethets.sol/Ethets.json'
+import { ethers } from 'ethers'
 
 export default class EthetsInterface extends BaseInterface {
   constructor() {
-    super('0x5FbDB2315678afecb367f032d93F642f64180aa3', Ethets.abi)
-    // Local: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+    super('0x37683c6066DC837BC6660509FF5C73b2680a3f11', Ethets.abi)
+    // Mumbai: 0xFf9661Cc7e8eC75702bcFD648c08D0Aa443c1c90
+    // Local: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
     // Kovan: 0xEfE1bC957a98a148fde0BDF3D9CC77d52c3de569
   }
 
@@ -120,10 +122,14 @@ export default class EthetsInterface extends BaseInterface {
     }
   }
 
+
   mint(recipient, amount) {
     if(super.ethCheck) {
       return super.getContract(true)
-        .then(contract => contract.mint(recipient, amount))
+        .then(contract => {
+          const value = 0.035 * amount
+          contract.mint(recipient, amount, {value: ethers.utils.parseEther(`${value}`)})
+        })
     }
   }
 
@@ -194,6 +200,20 @@ export default class EthetsInterface extends BaseInterface {
     if(super.ethCheck) {
       return super.getContract(true)
         .then(contract => contract.setBaseURI(baseURI))
+    }
+  }
+
+  withdrawETH() {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.withdrawETH())
+    }
+  }
+
+  withdrawLINK() {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.withdrawLINK())
     }
   }
 }
