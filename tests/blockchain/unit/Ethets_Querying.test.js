@@ -42,15 +42,35 @@ describe('Eth ETs', () => {
 
       expect(ability).to.equal(0)
     })
+
+    it('Should return token ability as a string', async () => {
+      const ability = await ethets.stringAbilityOf(0)
+      
+      expect(ability).to.equal('None')
+    })
     
     it('Should return weapon tier by token ID', async () => {
       const weaponTier = await ethets.weaponTierOf(0)
-
+      
       expect(weaponTier).to.equal(0)
     })
-
+    
     it('Should return the hybrid count of a token', async () => {
       expect(await ethets.hybridCountOf(0)).to.equal(0)
+    })
+
+    it('Should require image URL to be set', () => {
+      expect(ethets.imageUrlOf(0)).to.be.revertedWith('Ethets: Image URL not set')
+    })
+    
+    it('Should return token attributes as a JSON string', async () => {
+      expect(await ethets.jsonOf(0)).to.equal('[{"trait_type":"firing_range","value":"2"},{"trait_type":"firing_speed","value":"53"},{"trait_type":"reload_speed","value":"90"},{"trait_type":"melee_damage","value":"16"},{"trait_type":"melee_speed","value":"2"},{"trait_type":"magazine_capacity","value":"14"},{"trait_type":"reload_speed","value":"54"}]')
+    })
+    
+    it('Should return the image URL of a token', async () => {
+      await ethets.setBaseURI("URL")
+
+      expect(await ethets.imageUrlOf(0)).to.equal('URL0.png')
     })
   })
 })

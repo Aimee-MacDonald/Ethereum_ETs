@@ -45,7 +45,7 @@ describe('Eth ETs', () => {
     })
 
     it('Should cost 0.035 ETH per token to mint', async () => {
-      expect(await ethers.provider.getBalance(signers[0].address)).to.equal('9998216613083980262353')
+      expect(await ethers.provider.getBalance(ethets.address)).to.equal(0)
 
       await ethets.toggleSaleIsActive()
       let requestId = await ethets.mint(signers[0].address, 5, {value: ethers.utils.parseEther('0.17500000000000002')})
@@ -53,7 +53,7 @@ describe('Eth ETs', () => {
       requestId = requestId.events[0].data
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
 
-      expect(await ethers.provider.getBalance(signers[0].address)).to.equal('9998040697641972938797')
+      expect(await ethers.provider.getBalance(ethets.address)).to.equal('175000000000000020')
     })
 
     it('Should toggle saleIsActive', async () => {

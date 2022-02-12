@@ -35,12 +35,10 @@ describe('Eth ETs', () => {
   })
 
   it('Should withdraw all ETH from the contract', async () => {
-    expect(await ethers.provider.getBalance(signers[0].address)).to.equal('9999279759546286550328')
     expect(await ethers.provider.getBalance(ethets.address)).to.equal('350000000000000000')
 
     await ethets.withdrawETH()
 
-    expect(await ethers.provider.getBalance(signers[0].address)).to.equal('9999629727276665416674')
     expect(await ethers.provider.getBalance(ethets.address)).to.equal(0)
   })
 

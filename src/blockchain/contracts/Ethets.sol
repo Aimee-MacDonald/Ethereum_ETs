@@ -20,9 +20,9 @@ import "hardhat/console.sol";
 
 ////
 //
-//  Assign Classes
-//  Reserved Tokens
-//  1 of 1 / Special Tokens
+//  Immutable Meta-data
+//  333 Reserved Tokens
+//  Set minting price
 //
 ////
 
@@ -40,7 +40,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   uint256[10] private _hybridCosts;
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
-  uint256 public constant MAX_TOKENS = 900; //  8333 in production
+  uint256 public constant MAX_TOKENS = 900; //  8000 in production
   uint256 public constant MINTING_PRICE = 35000000000000000; //0.035 eth
   
   bool public saleIsActive;
@@ -62,6 +62,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   event SidekickAddressSet(address contractAddress);
   event CRPAddressSet(address contractAddress);
   event TokensHybridized(uint256 token_1, uint256 token_2);
+  event FundsWithdrawn(string tokenSymbol);
 
   struct RandomnessRequest {
     uint256 tokenId;
@@ -189,6 +190,24 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     return _abilities[tokenId];
   }
 
+  function stringAbilityOf(uint256 tokenId) external view returns (string memory) {
+    uint256 ability = uint256(_abilities[tokenId]);
+
+    if(ability == 0) {
+      return "None";
+    } else if(ability == 1) {
+      return "Health Regen";
+    } else if(ability == 2) {
+      return "Shield";
+    } else if(ability == 3) {
+      return "Dual Weapons";
+    } else if(ability == 4) {
+      return "Grenades";
+    } else if(ability == 5) {
+      return "Decoy";
+    }
+  }
+
   function weaponTierOf(uint256 tokenId) external view returns (WeaponTier) {
     return _weaponTiers[tokenId];
   }
@@ -289,7 +308,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
     RandomnessRequest memory request = _randomnessRequests[requestId];
-    require(request.requestType != RandomnessRequestType.NONE, "Ethets: RandomnessRequest does not have a type");
 
     if(request.requestType == RandomnessRequestType.MINT) {
       _fullMint(request.recipient, request.amount, randomness);
@@ -307,13 +325,13 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   }
   
   function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {
-  ////
-  //  !!!! IMPORTANT !!!!
-  //
-  //  Extra something to support ERC20?
-  //
-  //  !!!! IMPORTANT !!!!
-  ////
+    ////
+    //  !!!! IMPORTANT !!!!
+    //
+    //  Extra something to support ERC20?
+    //
+    //  !!!! IMPORTANT !!!!
+    ////
     return super.supportsInterface(interfaceId);
   }
 
@@ -327,10 +345,11 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
   function setBaseURI(string memory baseURI) external onlyOwner {
     _setBaseURI(baseURI);
+
     emit BaseURLChanged(baseURI);
   }
 
-  function _toString(uint256 number) internal pure returns (string memory) {
+  function _toString(uint256 number) private pure returns (string memory) {
     bytes memory buffer = new bytes(32);
     
     assembly {
@@ -363,7 +382,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     return string(buffer);
   }
   
-  function appendString(bytes memory buffer, string memory str) internal pure {
+  function _appendString(bytes memory buffer, string memory str) private pure {
     uint256 strLength = bytes(str).length;
     uint256 length = buffer.length;
 
@@ -388,56 +407,59 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     }        
   }
 
-  function _attributes(uint256 tokenId) private view returns (string memory) {
+  function jsonOf(uint256 tokenId) public view returns (string memory) {
     Statistics memory tokenStats = statsOf(tokenId);
     bytes memory attributesBuffer = new bytes(320);
 
     assembly { mstore(attributesBuffer, 0) }
 
-    appendString(attributesBuffer, '[{"trait_type":"firing_range","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.firing_range));
-    appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, '[{"trait_type":"firing_range","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.firing_range));
+    _appendString(attributesBuffer, '"},');
 
-    appendString(attributesBuffer, '{"trait_type":"firing_speed","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.firing_speed));
-    appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, '{"trait_type":"firing_speed","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.firing_speed));
+    _appendString(attributesBuffer, '"},');
 
-    appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.reload_speed));
-    appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.reload_speed));
+    _appendString(attributesBuffer, '"},');
     
-    appendString(attributesBuffer, '{"trait_type":"melee_damage","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.melee_damage));
-    appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, '{"trait_type":"melee_damage","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.melee_damage));
+    _appendString(attributesBuffer, '"},');
     
-    appendString(attributesBuffer, '{"trait_type":"melee_speed","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.melee_speed));
-    appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, '{"trait_type":"melee_speed","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.melee_speed));
+    _appendString(attributesBuffer, '"},');
     
-    appendString(attributesBuffer, '{"trait_type":"magazine_capacity","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.magazine_capacity));
-    appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, '{"trait_type":"magazine_capacity","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.magazine_capacity));
+    _appendString(attributesBuffer, '"},');
     
-    appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
-    appendString(attributesBuffer, _toString(tokenStats.health));
-    appendString(attributesBuffer, '"}]');
+    _appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
+    _appendString(attributesBuffer, _toString(tokenStats.health));
+    _appendString(attributesBuffer, '"}]');
     
     return string(attributesBuffer);
   }
 
   function imageUrlOf(uint256 tokenId) public view returns (string memory) {
+    bytes memory stringBytes = bytes(_baseTokenURI);
+    require(stringBytes.length != 0, "Ethets: Image URL not set");
+
     bytes memory urlBuffer = new bytes(50);
     assembly { mstore(urlBuffer, 0) }
     
-    appendString(urlBuffer, _baseTokenURI);
-    appendString(urlBuffer, _toString(tokenId));
-    appendString(urlBuffer, ".png");
+    _appendString(urlBuffer, _baseTokenURI);
+    _appendString(urlBuffer, _toString(tokenId));
+    _appendString(urlBuffer, ".png");
 
     return string(urlBuffer);
   }
 
   function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
-    string memory attributes = _attributes(tokenId);
+    string memory attributes = jsonOf(tokenId);
     string memory image = imageUrlOf(tokenId);
 
     bytes memory json = abi.encodePacked('{"name":"CryptoWars Ethereum ET #', _toString(tokenId), '", "attributes":', attributes, ', "image":"', image, '"}');
@@ -445,27 +467,31 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     return string(abi.encodePacked('data:application/json;base64,', Base64.encode(json)));
   }
 
-  ////
-  //
-  //  Emit events for withdrawal functions
-  //
-  ////
-
   function withdrawETH() external onlyOwner {
     payable(owner()).transfer(address(this).balance);
+
+    emit FundsWithdrawn("ETH");
   }
 
   function withdrawLINK() external onlyOwner {
     LINK.transfer(owner(), LINK.balanceOf(address(this)));
+    
+    emit FundsWithdrawn("LINK");
   }
 
   function withdrawCRP() external onlyOwner {
     require(address(CRP) != address(0), "Ethets: CRP not set");
-
     CRP.transfer(owner(), CRP.balanceOf(address(this)));
+    
+    emit FundsWithdrawn("CRP");
   }
 }
 
+////
+//
+//  Test access to all required data
+//
+////
 interface ISidekick {
   function mint(uint256 tokenId_1, uint256 tokenId_2) external returns (bool);
 }

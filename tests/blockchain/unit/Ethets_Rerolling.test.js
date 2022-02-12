@@ -114,6 +114,7 @@ describe('Eth ETs', () => {
       await vRFCoordinatorMock.callBackWithRandomness(requestId, 32, ethets.address)
 
       expect(await ethets.abilityOf(0)).to.equal(3)
+      expect(await ethets.stringAbilityOf(0)).to.equal("Dual Weapons")
     })
 
     it('Should cost 2000 CRP', async () => {
