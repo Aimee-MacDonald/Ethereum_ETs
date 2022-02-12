@@ -20,9 +20,9 @@ import "hardhat/console.sol";
 
 ////
 //
-//  Immutable Meta-data
-//  333 Reserved Tokens
-//  Set minting price
+//  * Immutable Meta-data
+//
+//  * 333 Reserved Tokens
 //
 ////
 
@@ -41,8 +41,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
   uint256 public constant MAX_TOKENS = 900; //  8000 in production
-  uint256 public constant MINTING_PRICE = 35000000000000000; //0.035 eth
   
+  uint256 public mintingPrice = 35000000000000000; //  0.035 eth
   bool public saleIsActive;
   bool public rerollingIsActive;
   bool public hybridizationIsActive;
@@ -63,6 +63,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   event CRPAddressSet(address contractAddress);
   event TokensHybridized(uint256 token_1, uint256 token_2);
   event FundsWithdrawn(string tokenSymbol);
+  event MintingPriceChanged(uint256 newPrice);
 
   struct RandomnessRequest {
     uint256 tokenId;
@@ -168,12 +169,18 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit CRPAddressSet(contractAddress);
   }
 
+  function setMintingPrice(uint256 newPrice) external onlyOwner {
+    mintingPrice = newPrice;
+
+    emit MintingPriceChanged(newPrice);
+  }
+
   function mint(address recipient, uint256 amount) external payable nonReentrant {
     require(saleIsActive, "Ethets: Sale must be active to mint");
     require(amount > 0 && amount <= 30, "Ethets: Max 30 NFTs per transaction");
     require(totalSupply() + amount <= MAX_TOKENS, "Ethers: Purchase would exceed max supply");
     require(balanceOf(recipient) + amount <= 30, "Ethers: Limit is 30 tokens per wallet, sale not allowed");
-    require(msg.value >= MINTING_PRICE * amount, "Not enough ETH for transaction");
+    require(msg.value >= mintingPrice * amount, "Not enough ETH for transaction");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);

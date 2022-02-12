@@ -25,6 +25,18 @@ describe('Eth ETs', () => {
   })
 
   describe('Querying', () => {
+    it('Should return the minting price', async () => {
+      expect(await ethets.mintingPrice()).to.equal('35000000000000000')
+    })
+
+    it('Should set the minting price', async () => {
+      expect(await ethets.mintingPrice()).to.equal('35000000000000000')
+
+      await ethets.setMintingPrice('45000000000000000')
+
+      expect(await ethets.mintingPrice()).to.equal('45000000000000000')
+    })
+
     it('Should return on-chain statistics data by token ID', async () => {
       const stats = await ethets.statsOf(0)
 
