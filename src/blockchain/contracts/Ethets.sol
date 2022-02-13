@@ -22,13 +22,12 @@ import "hardhat/console.sol";
 //
 //  * Immutable Meta-data
 //
-//  * 333 Reserved Tokens
-//
 ////
 
 contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
+  Counters.Counter private _reservedTokenIdTracker;
 
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => Ability) private _abilities;
@@ -41,6 +40,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
   uint256 public constant MAX_TOKENS = 900; //  8000 in production
+  uint256 public constant MAX_RESERVED_TOKENS = 333;
+  uint256 public reservedTokensMinted;
   
   uint256 public mintingPrice = 35000000000000000; //  0.035 eth
   bool public saleIsActive;
@@ -64,6 +65,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   event TokensHybridized(uint256 token_1, uint256 token_2);
   event FundsWithdrawn(string tokenSymbol);
   event MintingPriceChanged(uint256 newPrice);
+  event ReservedTokenMinted(uint256 tokenId);
 
   struct RandomnessRequest {
     uint256 tokenId;
@@ -85,6 +87,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   enum RandomnessRequestType {
     NONE,
     MINT,
+    MINT_RESERVED,
     STATISTICS,
     ABILITY
   }
@@ -185,6 +188,14 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT, recipient, amount);
+
+    emit RandomnessRequested(requestId);
+  }
+
+  function mintReservedToken(address recipient, uint256 amount) external onlyOwner nonReentrant {
+    require(reservedTokensMinted < MAX_RESERVED_TOKENS, "Ethets: Only 333 total reserved tokens can be minted");
+    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+    _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT_RESERVED, recipient, amount);
 
     emit RandomnessRequested(requestId);
   }
@@ -295,6 +306,21 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
       _tokenIdTracker.increment();
     }
   }
+
+  function _reserveMint(address recipient, uint256 amount, uint256 randomSeed) private {
+    for(uint256 i = 0; i < amount; i++) {
+      uint256 randomness = uint256(keccak256(abi.encodePacked(randomSeed, i)));
+      
+      _safeMint(recipient, MAX_TOKENS + _reservedTokenIdTracker.current());
+      _setStats(_reservedTokenIdTracker.current(), randomness);
+      _abilities[_reservedTokenIdTracker.current()] = Ability.NONE;
+      _weaponTiers[_reservedTokenIdTracker.current()] = WeaponTier.TIER_0;
+
+      _reservedTokenIdTracker.increment();
+      reservedTokensMinted = reservedTokensMinted + 1;
+      emit ReservedTokenMinted(reservedTokensMinted);
+    }
+  }
   
   function _setStats(uint256 tokenId, uint256 randomSeed) private {
     uint256 numStats = 7;
@@ -318,6 +344,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
     if(request.requestType == RandomnessRequestType.MINT) {
       _fullMint(request.recipient, request.amount, randomness);
+    } else if(request.requestType == RandomnessRequestType.MINT_RESERVED) {
+      _reserveMint(request.recipient, request.amount, randomness);
     } else if(request.requestType == RandomnessRequestType.STATISTICS) {
       _setStats(request.tokenId, randomness);
     } else if(request.requestType == RandomnessRequestType.ABILITY) {

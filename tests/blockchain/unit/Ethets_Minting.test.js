@@ -1,5 +1,4 @@
 const { expect } = require('chai')
-const { ethers } = require('hardhat')
 
 describe('Eth ETs', () => {
   let signers, ethets, vrfCoordinatorMock
@@ -42,6 +41,71 @@ describe('Eth ETs', () => {
       await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
 
       expect(await ethets.balanceOf(signers[0].address)).to.equal(5)
+    })
+
+    it('Should return the number of reserved tokens already minted', async () => {
+      expect(await ethets.reservedTokensMinted()).to.equal(0)
+    })
+    
+    it('Should mint a new reserved token', async () => {
+      expect(await ethets.reservedTokensMinted()).to.equal(0)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+      
+      let requestId = await ethets.mintReservedToken(signers[0].address, 1)
+      requestId = await requestId.wait() 
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
+      
+      expect(await ethets.reservedTokensMinted()).to.equal(1)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(1)
+    })
+
+    it('Reserved tokens can only be minted by contract owner', () => {
+      expect(ethets.connect(signers[1]).mintReservedToken(signers[1].address, 1)).to.be.revertedWith('Ownable: caller is not the owner')
+    })
+
+    it('Should mint multiple reserved tokens', async () => {
+      expect(await ethets.reservedTokensMinted()).to.equal(0)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+      
+      let requestId = await ethets.mintReservedToken(signers[0].address, 5)
+      requestId = await requestId.wait() 
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
+      
+      expect(await ethets.reservedTokensMinted()).to.equal(5)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(5)
+    })
+
+    it('Should mint a maximum of 333 reserved tokens', async () => {
+      expect(await ethets.reservedTokensMinted()).to.equal(0)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(0)
+      
+      let requestId = await ethets.mintReservedToken(signers[0].address, 100)
+      requestId = await requestId.wait() 
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
+      
+      expect(await ethets.reservedTokensMinted()).to.equal(100)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(100)
+
+      requestId = await ethets.mintReservedToken(signers[0].address, 100)
+      requestId = await requestId.wait() 
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+
+      expect(await ethets.reservedTokensMinted()).to.equal(200)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(200)
+      
+      requestId = await ethets.mintReservedToken(signers[0].address, 133)
+      requestId = await requestId.wait() 
+      requestId = requestId.events[0].data
+      await vrfCoordinatorMock.callBackWithRandomness(requestId, 8, ethets.address)
+      
+      expect(await ethets.reservedTokensMinted()).to.equal(333)
+      expect(await ethets.balanceOf(signers[0].address)).to.equal(333)
+
+      expect(ethets.mintReservedToken(signers[0].address, 133)).to.be.revertedWith('Ethets: Only 333 total reserved tokens can be minted')
     })
 
     it('Should cost 0.035 ETH per token to mint', async () => {
