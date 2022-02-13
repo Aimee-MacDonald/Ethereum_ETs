@@ -96,6 +96,54 @@ describe('Eth ETs', () => {
     })
   })
 
+  describe('Visual Data', () => {
+    it('Should set the visual data of a token', async () => {
+      let visualData = await ethets.visualDataOf(0)
+      
+      expect(visualData.background).to.equal("")
+      expect(visualData.outfit).to.equal("")
+      expect(visualData.belt).to.equal("")
+      expect(visualData.token_type).to.equal("")
+      expect(visualData.face_accessory).to.equal("")
+      expect(visualData.head_gear).to.equal("")
+      expect(visualData.weapon).to.equal("")
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife")
+      visualData = await ethets.visualDataOf(0)
+
+      expect(visualData.background).to.equal("Area 51 v1")
+      expect(visualData.outfit).to.equal("GR Camo")
+      expect(visualData.belt).to.equal("Grenades")
+      expect(visualData.token_type).to.equal("ET HB Bravo")
+      expect(visualData.face_accessory).to.equal("None")
+      expect(visualData.head_gear).to.equal("GR Beret")
+      expect(visualData.weapon).to.equal("Knife")
+    })
+
+    it('Should only be set by the owner', async () => {
+      let visualData = await ethets.visualDataOf(0)
+      
+      expect(visualData.background).to.equal("")
+      expect(visualData.outfit).to.equal("")
+      expect(visualData.belt).to.equal("")
+      expect(visualData.token_type).to.equal("")
+      expect(visualData.face_accessory).to.equal("")
+      expect(visualData.head_gear).to.equal("")
+      expect(visualData.weapon).to.equal("")
+
+      expect(ethets.connect(signers[1]).setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife")).to.be.revertedWith('Ownable: caller is not the owner')
+      visualData = await ethets.visualDataOf(0)
+
+      expect(visualData.background).to.equal("")
+      expect(visualData.outfit).to.equal("")
+      expect(visualData.belt).to.equal("")
+      expect(visualData.token_type).to.equal("")
+      expect(visualData.face_accessory).to.equal("")
+      expect(visualData.head_gear).to.equal("")
+      expect(visualData.weapon).to.equal("")
+    })
+  })
+
   describe('Ability Rerolling', () => {
     it('Should require CRP to be set', async () => {
       await ethets.toggleRerollingIsActive()

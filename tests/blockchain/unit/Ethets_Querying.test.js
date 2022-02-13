@@ -49,6 +49,18 @@ describe('Eth ETs', () => {
       expect(stats.health).to.equal(54)
     })
 
+    it('Should return on-chain visual data by token ID', async () => {
+      const visualData = await ethets.visualDataOf(0)
+
+      expect(visualData.background).to.equal("")
+      expect(visualData.outfit).to.equal("")
+      expect(visualData.belt).to.equal("")
+      expect(visualData.token_type).to.equal("")
+      expect(visualData.face_accessory).to.equal("")
+      expect(visualData.head_gear).to.equal("")
+      expect(visualData.weapon).to.equal("")
+    })
+
     it('Should return on-chain ability data by token ID', async () => {
       const ability = await ethets.abilityOf(0)
 

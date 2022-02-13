@@ -20,7 +20,7 @@ import "hardhat/console.sol";
 
 ////
 //
-//  * Immutable Meta-data
+//  * Rank Data
 //
 ////
 
@@ -30,6 +30,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   Counters.Counter private _reservedTokenIdTracker;
 
   mapping(uint256 => Statistics) private _statistics;
+  mapping(uint256 => VisualData) private _visualData;
   mapping(uint256 => Ability) private _abilities;
   mapping(uint256 => WeaponTier) private _weaponTiers;
   mapping(uint256 => uint256) private _hybridCounts;
@@ -58,6 +59,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   event BaseURLChanged(string baseURI);
   event RandomnessRequested(bytes32 requestId);
   event StatsRerolled(uint256 tokenId);
+  event VisualDataChanged(uint256 tokenId);
   event AbilityRerolled(uint256 tokenId);
   event WeaponUpgraded(uint256 tokenId);
   event SidekickAddressSet(address contractAddress);
@@ -82,6 +84,16 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     uint8 melee_speed;
     uint8 magazine_capacity;
     uint8 health;
+  }
+
+  struct VisualData {
+    string background;
+    string outfit;
+    string belt;
+    string token_type;
+    string face_accessory;
+    string head_gear;
+    string weapon;
   }
 
   enum RandomnessRequestType {
@@ -203,6 +215,10 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   function statsOf(uint256 tokenId) public view returns (Statistics memory) {
     return _statistics[tokenId];
   }
+
+  function visualDataOf(uint256 tokenId) public view returns (VisualData memory) {
+    return _visualData[tokenId];
+  }
   
   function abilityOf(uint256 tokenId) external view returns (Ability) {
     return _abilities[tokenId];
@@ -245,6 +261,12 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0), 0);
 
     emit RandomnessRequested(requestId);
+  }
+
+  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon) external onlyOwner {
+    _visualData[tokenId] = VisualData(background, outfit, belt, tokenType, faceAccessory, headGear, weapon);
+    
+    emit VisualDataChanged(tokenId);
   }
 
   function rerollAbility(uint tokenId) external nonReentrant {
