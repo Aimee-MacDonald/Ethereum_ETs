@@ -59,6 +59,11 @@ describe('Eth ETs', () => {
       expect(visualData.face_accessory).to.equal("")
       expect(visualData.head_gear).to.equal("")
       expect(visualData.weapon).to.equal("")
+      expect(visualData.rank).to.equal("")
+    })
+
+    it('Should return the Rank Group for a token', async () => {
+      expect(await ethets.rankGroupOf(0)).to.equal(0)
     })
 
     it('Should return on-chain ability data by token ID', async () => {

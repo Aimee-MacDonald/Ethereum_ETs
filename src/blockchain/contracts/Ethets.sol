@@ -18,12 +18,6 @@ import "hardhat/console.sol";
 //  NOT IN PRODUCTION
 ////
 
-////
-//
-//  * Rank Data
-//
-////
-
 contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
@@ -31,6 +25,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => VisualData) private _visualData;
+  mapping(uint256 => uint256) private _rankGroup;
   mapping(uint256 => Ability) private _abilities;
   mapping(uint256 => WeaponTier) private _weaponTiers;
   mapping(uint256 => uint256) private _hybridCounts;
@@ -94,6 +89,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     string face_accessory;
     string head_gear;
     string weapon;
+    string rank;
   }
 
   enum RandomnessRequestType {
@@ -219,6 +215,10 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   function visualDataOf(uint256 tokenId) public view returns (VisualData memory) {
     return _visualData[tokenId];
   }
+
+  function rankGroupOf(uint256 tokenId) external view returns (uint256) {
+    return _rankGroup[tokenId];
+  }
   
   function abilityOf(uint256 tokenId) external view returns (Ability) {
     return _abilities[tokenId];
@@ -263,9 +263,31 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit RandomnessRequested(requestId);
   }
 
-  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon) external onlyOwner {
-    _visualData[tokenId] = VisualData(background, outfit, belt, tokenType, faceAccessory, headGear, weapon);
+  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon, string memory rank) external onlyOwner {
+    bytes32 rankHash = keccak256(abi.encodePacked(rank));
+
+    if(rankHash == keccak256(abi.encodePacked("Lord"))) {
+      _rankGroup[tokenId] = 1;
+    } else if (rankHash == keccak256(abi.encodePacked("Spy"))) {
+      _rankGroup[tokenId] = 2;
+    } else if(rankHash == keccak256(abi.encodePacked("POW"))) {
+      _rankGroup[tokenId] = 2;
+    } else if (rankHash == keccak256(abi.encodePacked("HOA"))) {
+      _rankGroup[tokenId] = 3;
+    } else if(rankHash == keccak256(abi.encodePacked("Major"))) {
+      _rankGroup[tokenId] = 3;
+    } else if (rankHash == keccak256(abi.encodePacked("Captain"))) {
+      _rankGroup[tokenId] = 4;
+    } else if(rankHash == keccak256(abi.encodePacked("Alienfantry"))) {
+      _rankGroup[tokenId] = 4;
+    } else if(rankHash == keccak256(abi.encodePacked("Private Human"))) {
+      _rankGroup[tokenId] = 4;
+    } else {
+      revert("Ethets: Invalid Rank");
+    }
     
+    _visualData[tokenId] = VisualData(background, outfit, belt, tokenType, faceAccessory, headGear, weapon, rank);
+
     emit VisualDataChanged(tokenId);
   }
 

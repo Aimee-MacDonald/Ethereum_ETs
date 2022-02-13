@@ -107,10 +107,11 @@ describe('Eth ETs', () => {
       expect(visualData.face_accessory).to.equal("")
       expect(visualData.head_gear).to.equal("")
       expect(visualData.weapon).to.equal("")
-
-      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife")
+      expect(visualData.rank).to.equal("")
+      
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Spy")
       visualData = await ethets.visualDataOf(0)
-
+      
       expect(visualData.background).to.equal("Area 51 v1")
       expect(visualData.outfit).to.equal("GR Camo")
       expect(visualData.belt).to.equal("Grenades")
@@ -118,6 +119,37 @@ describe('Eth ETs', () => {
       expect(visualData.face_accessory).to.equal("None")
       expect(visualData.head_gear).to.equal("GR Beret")
       expect(visualData.weapon).to.equal("Knife")
+      expect(visualData.rank).to.equal("Spy")
+    })
+    
+    it('Should automatically set the rank group of a token', async () => {
+      expect(await ethets.rankGroupOf(0)).to.equal(0)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Lord")
+      expect(await ethets.rankGroupOf(0)).to.equal(1)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Spy")
+      expect(await ethets.rankGroupOf(0)).to.equal(2)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "POW")
+      expect(await ethets.rankGroupOf(0)).to.equal(2)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "HOA")
+      expect(await ethets.rankGroupOf(0)).to.equal(3)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Major")
+      expect(await ethets.rankGroupOf(0)).to.equal(3)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Captain")
+      expect(await ethets.rankGroupOf(0)).to.equal(4)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Alienfantry")
+      expect(await ethets.rankGroupOf(0)).to.equal(4)
+
+      await ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Private Human")
+      expect(await ethets.rankGroupOf(0)).to.equal(4)
+
+      expect(ethets.setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "invalid")).to.be.revertedWith('Ethets: Invalid Rank')
     })
 
     it('Should only be set by the owner', async () => {
@@ -130,10 +162,11 @@ describe('Eth ETs', () => {
       expect(visualData.face_accessory).to.equal("")
       expect(visualData.head_gear).to.equal("")
       expect(visualData.weapon).to.equal("")
-
-      expect(ethets.connect(signers[1]).setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife")).to.be.revertedWith('Ownable: caller is not the owner')
+      expect(visualData.rank).to.equal("")
+      
+      expect(ethets.connect(signers[1]).setVisualDataOf(0, "Area 51 v1", "GR Camo", "Grenades", "ET HB Bravo", "None", "GR Beret", "Knife", "Spy")).to.be.revertedWith('Ownable: caller is not the owner')
       visualData = await ethets.visualDataOf(0)
-
+      
       expect(visualData.background).to.equal("")
       expect(visualData.outfit).to.equal("")
       expect(visualData.belt).to.equal("")
@@ -141,6 +174,7 @@ describe('Eth ETs', () => {
       expect(visualData.face_accessory).to.equal("")
       expect(visualData.head_gear).to.equal("")
       expect(visualData.weapon).to.equal("")
+      expect(visualData.rank).to.equal("")
     })
   })
 
