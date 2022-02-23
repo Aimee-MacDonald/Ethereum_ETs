@@ -35,6 +35,8 @@ describe('Eth ETs', () => {
   })
 
   describe('Permissions', () => {
+    it('toggleRerollingIsActive Should require CRP to be set', () => expect(true).to.equal(false))
+    
     it('Should toggle rerollingIsActive', async () => {
       await ethets.toggleRerollingIsActive()
     })

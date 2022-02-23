@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 
 export default class EthetsInterface extends BaseInterface {
   constructor() {
-    super('0x37683c6066DC837BC6660509FF5C73b2680a3f11', Ethets.abi)
+    super('0x4DE0B9D1AfDF2154b00A21D0119f155238754CE8', Ethets.abi)
     // Mumbai: 0xFf9661Cc7e8eC75702bcFD648c08D0Aa443c1c90
     // Local: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
     // Kovan: 0xEfE1bC957a98a148fde0BDF3D9CC77d52c3de569
@@ -168,6 +168,13 @@ export default class EthetsInterface extends BaseInterface {
     }
   }
 
+  stringAbilityOf(tokenId) {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.stringAbilityOf(tokenId))
+    }
+  }
+
   rerollAbility(tokenId) {
     if(super.ethCheck) {
       return super.getContract(true)
@@ -214,6 +221,118 @@ export default class EthetsInterface extends BaseInterface {
     if(super.ethCheck) {
       return super.getContract(true)
         .then(contract => contract.withdrawLINK())
+    }
+  }
+
+  withdrawCRP() {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.withdrawCRP())
+    }
+  }
+
+  rerollingIsActive() {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.rerollingIsActive())
+    }
+  }
+
+  toggleRerollingIsActive() {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.toggleRerollingIsActive())
+    }
+  }
+
+  setCRP(crpAddress) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.setCRP(crpAddress))
+    }
+  }
+
+  hybridizationIsActive() {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.hybridizationIsActive())
+    }
+  }
+
+  toggleHybridizationIsActive() {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.toggleHybridizationIsActive())
+    }
+  }
+
+  setSidekick(contractAddress) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.setSidekick(contractAddress))
+    }
+  }
+
+  hybridize(tokenID_1, tokenID_2) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.hybridize(tokenID_1, tokenID_2))
+    }
+  }
+
+  hybridCountOf(tokenID) {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.hybridCountOf(tokenID))
+    }
+  }
+
+  imageUrlOf(tokenId) {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.imageUrlOf(tokenId))
+    }
+  }
+
+  mintingPrice() {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.mintingPrice())
+    }
+  }
+
+  setMintingPrice(price) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.setMintingPrice(price))
+    }
+  }
+
+  reservedTokensMinted() {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.reservedTokensMinted())
+    }
+  }
+
+  mintReservedToken(recipient, amount) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.mintReservedToken(recipient, amount))
+    }
+  }
+
+  visualDataOf(tokenId) {
+    if(super.ethCheck) {
+      return super.getContract()
+        .then(contract => contract.visualDataOf(tokenId))
+    }
+  }
+
+  setVisualDataOf(tokenId, background, belt, face_accessory, head_gear, outfit, rank, token_type, weapon) {
+    if(super.ethCheck) {
+      return super.getContract(true)
+        .then(contract => contract.setVisualDataOf(tokenId, background, belt, face_accessory, head_gear, outfit, rank, token_type, weapon))
     }
   }
 }
