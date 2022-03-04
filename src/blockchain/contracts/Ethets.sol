@@ -336,6 +336,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     _hybridCounts[token_2]++;
 
     emit TokensHybridized(token_1, token_2);
+    
   }
 
   function _fullMint(address recipient, uint256 amount, uint256 randomSeed) private {
@@ -572,5 +573,5 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 //
 ////
 interface ISidekick {
-  function mint(uint256 tokenId_1, uint256 tokenId_2) external returns (bool);
+  function mint(uint256 tokenId_1, uint256 tokenId_2) external;
 }
