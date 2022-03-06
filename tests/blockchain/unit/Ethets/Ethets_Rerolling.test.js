@@ -35,10 +35,23 @@ describe('Eth ETs', () => {
   })
 
   describe('Permissions', () => {
-    it('toggleRerollingIsActive Should require CRP to be set', () => expect(true).to.equal(false))
+    it('toggleRerollingIsActive Should require CRP to be set', async () => {
+      expect(await ethets.rerollingIsActive()).to.equal(false)
+      
+      expect(ethets.toggleRerollingIsActive()).to.be.revertedWith('Ethets: CRP not set')
+      await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
+
+      expect(await ethets.rerollingIsActive()).to.equal(true)
+    })
     
     it('Should toggle rerollingIsActive', async () => {
+      expect(await ethets.rerollingIsActive()).to.equal(false)
+
+      await ethets.setCRP(mockCRP.address)
       await ethets.toggleRerollingIsActive()
+
+      expect(await ethets.rerollingIsActive()).to.equal(true)
     })
 
     it('Should revert if rerollingIsActive is false', () => {
@@ -48,14 +61,9 @@ describe('Eth ETs', () => {
   })
 
   describe('Stats Rerolling', () => {
-    it('Should require CRP to be set', async () => {
-      await ethets.toggleRerollingIsActive()
-      expect(ethets.rerollStats(0)).to.be.revertedWith('Ethets: CRP not set')
-    })
-
     it('Should generate new stats', async () => {
-      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
       let stats = await ethets.statsOf(0)
       
       expect(stats.firing_range).to.equal(2)
@@ -84,8 +92,8 @@ describe('Eth ETs', () => {
     })
 
     it('Should cost 950 CRP', async () => {
-      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
       expect(await mockCRP.balanceOf(signers[0].address)).to.equal(10000)
 
       await mockCRP.approve(ethets.address, 950)
@@ -181,14 +189,9 @@ describe('Eth ETs', () => {
   })
 
   describe('Ability Rerolling', () => {
-    it('Should require CRP to be set', async () => {
-      await ethets.toggleRerollingIsActive()
-      expect(ethets.rerollAbility(0)).to.be.revertedWith('Ethets: CRP not set')
-    })
-
     it('Should generate a new ability', async () => {
-      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
       expect(await ethets.abilityOf(0)).to.equal(0)
 
       await mockCRP.approve(ethets.address, 2000)
@@ -202,8 +205,8 @@ describe('Eth ETs', () => {
     })
 
     it('Should cost 2000 CRP', async () => {
-      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
       expect(await mockCRP.balanceOf(signers[0].address)).to.equal(10000)
 
       await mockCRP.approve(ethets.address, 2000)
@@ -217,14 +220,9 @@ describe('Eth ETs', () => {
   })
 
   describe('Weapon Upgrading', () => {
-    it('Should require CRP to be set', async () => {
-      await ethets.toggleRerollingIsActive()
-      expect(ethets.upgradeWeapon(0)).to.be.revertedWith('Ethets: CRP not set')
-    })
-
     it('Should upgrade the weapon tier', async () => {
-      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
       expect(await ethets.weaponTierOf(0)).to.equal(0)
 
       await mockCRP.approve(ethets.address, 3500)
@@ -239,8 +237,8 @@ describe('Eth ETs', () => {
     })
 
     it('Should deduct relevant CRP cost', async () => {
-      await ethets.toggleRerollingIsActive()
       await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
       await mockCRP.approve(ethets.address, 3500)
 
       expect(await mockCRP.balanceOf(signers[0].address)).to.equal(10000)

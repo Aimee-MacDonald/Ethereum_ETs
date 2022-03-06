@@ -155,6 +155,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   }
 
   function toggleRerollingIsActive() external onlyOwner {
+    require(address(CRP) != address(0), "Ethets: CRP not set");
+    
     rerollingIsActive = !rerollingIsActive;
 
     emit RerollingIsActiveToggle(rerollingIsActive);
