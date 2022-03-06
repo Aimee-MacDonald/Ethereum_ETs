@@ -15,6 +15,7 @@ contract Ethetsks is ERC721Enumerable {
   }
 
   function mint(uint256 token_1, uint256 token_2) external {
+    require(_msgSender() == address(ETHETS), "Ethetsks: Minting restricted");
     address recipient = ETHETS.ownerOf(token_1);
     _safeMint(recipient, _tokenIdTracker.current());
   }

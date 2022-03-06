@@ -1,13 +1,13 @@
 const { expect } = require('chai')
 
 describe('Ethetsks', () => {
-  let signers, ethetsks
+  let signers, mockEthets, ethetsks
 
   beforeEach(async () => {
     signers = await ethers.getSigners()
 
     const MockEthets = await ethers.getContractFactory('MockEthets')
-    const mockEthets = await MockEthets.deploy()
+    mockEthets = await MockEthets.deploy()
 
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
     ethetsks = await Ethetsks.deploy(mockEthets.address)
@@ -18,15 +18,15 @@ describe('Ethetsks', () => {
     await mockEthets.mint(signers[0].address)
   })
 
-  it('Should mint a new NFT', async () => {
+  it('Should let Ethets contract mint new Sidekicks', async () => {
     expect(await ethetsks.balanceOf(signers[0].address)).to.equal(0)
-
-    await ethetsks.mint(0, 1)
     
+    await mockEthets.hybridize(0, 1)
+
     expect(await ethetsks.balanceOf(signers[0].address)).to.equal(1)
   })
 
-  it('Only Ethets can call', () => expect(true).to.equal(false))
-  it('Both tokens should exist', () => expect(true).to.equal(false))
-  it('Both tokens should belong to the caller', () => expect(true).to.equal(false))
+  it('Should revert of not called by the Ethets contract', () => {
+    expect(ethetsks.mint(0, 1)).to.be.revertedWith('Ethetsks: Minting restricted')
+  })
 })

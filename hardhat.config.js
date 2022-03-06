@@ -23,7 +23,7 @@ module.exports = {
     sources: './src/blockchain/contracts',
     cache: './src/blockchain/cache',
     artifacts: './src/frontend/artifacts',
-    tests: './tests/blockchain/unit'
+    tests: './tests/blockchain/unit/ethetsks'
   },
   defaultNetwork: "hardhat",
   networks: {
