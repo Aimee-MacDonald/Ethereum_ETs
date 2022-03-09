@@ -265,29 +265,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit RandomnessRequested(requestId);
   }
 
-  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon, string memory rank) external onlyOwner {
-    bytes32 rankHash = keccak256(abi.encodePacked(rank));
-
-    if(rankHash == keccak256(abi.encodePacked("Lord"))) {
-      _rankGroup[tokenId] = 1;
-    } else if (rankHash == keccak256(abi.encodePacked("Spy"))) {
-      _rankGroup[tokenId] = 2;
-    } else if(rankHash == keccak256(abi.encodePacked("POW"))) {
-      _rankGroup[tokenId] = 2;
-    } else if (rankHash == keccak256(abi.encodePacked("HOA"))) {
-      _rankGroup[tokenId] = 3;
-    } else if(rankHash == keccak256(abi.encodePacked("Major"))) {
-      _rankGroup[tokenId] = 3;
-    } else if (rankHash == keccak256(abi.encodePacked("Captain"))) {
-      _rankGroup[tokenId] = 4;
-    } else if(rankHash == keccak256(abi.encodePacked("Alienfantry"))) {
-      _rankGroup[tokenId] = 4;
-    } else if(rankHash == keccak256(abi.encodePacked("Private Human"))) {
-      _rankGroup[tokenId] = 4;
-    } else {
-      revert("Ethets: Invalid Rank");
-    }
-    
+  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon, string memory rank, uint256 rankGroup) external onlyOwner {
+    _rankGroup[tokenId] = rankGroup;
     _visualData[tokenId] = VisualData(background, outfit, belt, tokenType, faceAccessory, headGear, weapon, rank);
 
     emit VisualDataChanged(tokenId);
@@ -407,13 +386,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   }
   
   function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {
-    ////
-    //  !!!! IMPORTANT !!!!
-    //
-    //  Extra something to support ERC20?
-    //
-    //  !!!! IMPORTANT !!!!
-    ////
     return super.supportsInterface(interfaceId);
   }
 
