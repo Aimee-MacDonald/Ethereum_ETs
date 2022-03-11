@@ -35,7 +35,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   uint256[10] private _hybridCosts;
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
-  uint256 public constant MAX_TOKENS = 900; //  8000 in production
+  uint256 public constant MAX_TOKENS = 300; //  8000 in production
   uint256 public constant MAX_RESERVED_TOKENS = 333;
   uint256 public reservedTokensMinted;
   
@@ -68,7 +68,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     uint256 tokenId;
     RandomnessRequestType requestType;
     address recipient;
-    uint256 amount;
   }
 
   struct Statistics {
@@ -196,18 +195,23 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     require(msg.value >= mintingPrice * amount, "Not enough ETH for transaction");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
-    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-    _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT, recipient, amount);
+    for(uint256 i = 0; i < amount; i++) {
+      bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+      _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT, recipient);
 
-    emit RandomnessRequested(requestId);
+      emit RandomnessRequested(requestId);
+    }
   }
 
   function mintReservedToken(address recipient, uint256 amount) external onlyOwner nonReentrant {
     require(reservedTokensMinted < MAX_RESERVED_TOKENS, "Ethets: Only 333 total reserved tokens can be minted");
-    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-    _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT_RESERVED, recipient, amount);
 
-    emit RandomnessRequested(requestId);
+    for(uint256 i = 0; i < amount; i++) {
+      bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+      _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.MINT_RESERVED, recipient);
+
+      emit RandomnessRequested(requestId);
+    }
   }
 
   function statsOf(uint256 tokenId) public view returns (Statistics memory) {
@@ -260,7 +264,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     CRP.transferFrom(_msgSender(), address(this), 950);
     
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0), 0);
+    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0));
 
     emit RandomnessRequested(requestId);
   }
@@ -280,7 +284,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     CRP.transferFrom(_msgSender(), address(this), 2000);
 
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
-    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY, address(0), 0);
+    _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY, address(0));
 
     emit RandomnessRequested(requestId);
   }
@@ -320,32 +324,24 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     
   }
 
-  function _fullMint(address recipient, uint256 amount, uint256 randomSeed) private {
-    for(uint256 i = 0; i < amount; i++) {
-      uint256 randomness = uint256(keccak256(abi.encodePacked(randomSeed, i)));
+  function _fullMint(address recipient, uint256 randomness) private {
+    _safeMint(recipient, _tokenIdTracker.current());
+    _setStats(_tokenIdTracker.current(), randomness);
+    _abilities[_tokenIdTracker.current()] = Ability.NONE;
+    _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
 
-      _safeMint(recipient, _tokenIdTracker.current());
-      _setStats(_tokenIdTracker.current(), randomness);
-      _abilities[_tokenIdTracker.current()] = Ability.NONE;
-      _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
-
-      _tokenIdTracker.increment();
-    }
+    _tokenIdTracker.increment();
   }
 
-  function _reserveMint(address recipient, uint256 amount, uint256 randomSeed) private {
-    for(uint256 i = 0; i < amount; i++) {
-      uint256 randomness = uint256(keccak256(abi.encodePacked(randomSeed, i)));
-      
-      _safeMint(recipient, MAX_TOKENS + _reservedTokenIdTracker.current());
-      _setStats(_reservedTokenIdTracker.current(), randomness);
-      _abilities[_reservedTokenIdTracker.current()] = Ability.NONE;
-      _weaponTiers[_reservedTokenIdTracker.current()] = WeaponTier.TIER_0;
+  function _reserveMint(address recipient, uint256 randomness) private {
+    _safeMint(recipient, MAX_TOKENS + _reservedTokenIdTracker.current());
+    _setStats(_reservedTokenIdTracker.current(), randomness);
+    _abilities[_reservedTokenIdTracker.current()] = Ability.NONE;
+    _weaponTiers[_reservedTokenIdTracker.current()] = WeaponTier.TIER_0;
 
-      _reservedTokenIdTracker.increment();
-      reservedTokensMinted = reservedTokensMinted + 1;
-      emit ReservedTokenMinted(reservedTokensMinted);
-    }
+    _reservedTokenIdTracker.increment();
+    reservedTokensMinted = reservedTokensMinted + 1;
+    emit ReservedTokenMinted(reservedTokensMinted);
   }
   
   function _setStats(uint256 tokenId, uint256 randomSeed) private {
@@ -369,9 +365,9 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     RandomnessRequest memory request = _randomnessRequests[requestId];
 
     if(request.requestType == RandomnessRequestType.MINT) {
-      _fullMint(request.recipient, request.amount, randomness);
+      _fullMint(request.recipient, randomness);
     } else if(request.requestType == RandomnessRequestType.MINT_RESERVED) {
-      _reserveMint(request.recipient, request.amount, randomness);
+      _reserveMint(request.recipient, randomness);
     } else if(request.requestType == RandomnessRequestType.STATISTICS) {
       _setStats(request.tokenId, randomness);
     } else if(request.requestType == RandomnessRequestType.ABILITY) {

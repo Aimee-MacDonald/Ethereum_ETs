@@ -61,11 +61,15 @@ describe('Eth ETs', () => {
       await ethets.toggleHybridizationIsActive()
       await ethets.setSidekick(mockSideKick.address)
       await ethets.setCRP(mockCRP.address)
-
-      let requestId = await ethets.mint(signers[0].address, 3, {value: ethers.utils.parseEther('0.10500000000000001')})
-      requestId = await requestId.wait()
-      requestId = requestId.events[0].data
-      await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+      
+      let result = await ethets.mint(signers[0].address, 3, {value: ethers.utils.parseEther('0.10500000000000001')})
+      result = await result.wait()
+      result = result.events
+      
+      result.forEach(async (evnt, i) => {
+        await vrfCoordinatorMock.callBackWithRandomness(evnt.data, i * 2, ethets.address)
+      })
+      
       await mockCRP.approve(ethets.address, 100000)
     })
 
@@ -86,6 +90,7 @@ describe('Eth ETs', () => {
   
     it('Should allow a token to hybridize up to 10 times', async () => {
       expect(await ethets.hybridCountOf(0)).to.equal(0)
+
       await ethets.hybridize(0, 1)
       await ethets.hybridize(0, 1)
       await ethets.hybridize(0, 1)
@@ -108,10 +113,14 @@ describe('Eth ETs', () => {
     beforeEach(async () => {
       await ethets.toggleHybridizationIsActive()
       await ethets.setSidekick(mockSideKick.address)
-      let requestId = await ethets.mint(signers[0].address, 3, {value: ethers.utils.parseEther('0.10500000000000001')})
-      requestId = await requestId.wait()
-      requestId = requestId.events[0].data
-      await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+
+      let result = await ethets.mint(signers[0].address, 3, {value: ethers.utils.parseEther('0.10500000000000001')})
+      result = await result.wait()
+      result = result.events
+
+      result.forEach(async (evnt, i) => {
+        await vrfCoordinatorMock.callBackWithRandomness(evnt.data, i * 2, ethets.address)
+      })
     })
 
     it('Should deduct relevant CRP cost', async () => {
@@ -170,10 +179,13 @@ describe('Eth ETs', () => {
       await ethets.setCRP(mockCRP.address)
       await mockCRP.approve(ethets.address, 10000)
 
-      let requestId = await ethets.mint(signers[0].address, 2, {value: ethers.utils.parseEther('0.07')})
-      requestId = await requestId.wait()
-      requestId = requestId.events[0].data
-      await vrfCoordinatorMock.callBackWithRandomness(requestId, 4, ethets.address)
+      let result = await ethets.mint(signers[0].address, 2, {value: ethers.utils.parseEther('0.07')})
+      result = await result.wait()
+      result = result.events
+
+      result.forEach(async (evnt, i) => {
+        await vrfCoordinatorMock.callBackWithRandomness(evnt.data, i * 2, ethets.address)
+      })
     })
     
     it('Should mint a sidekick token', async () => {

@@ -31,10 +31,13 @@ describe('Ethets integration', () => {
     await cryptonium.mint(signers[0].address, '50000')
     await cryptonium.approve(ethets.address, '50000')
 
-    let requestId = await ethets.mint(signers[0].address, 2, {value: ethers.utils.parseEther('0.7')})
-    requestId = await requestId.wait()
-    requestId = requestId.events[0].data
-    await vrfCoordinatorMock.callBackWithRandomness(requestId, 2, ethets.address)
+    let result = await ethets.mint(signers[0].address, 2, {value: ethers.utils.parseEther('0.7')})
+    result = await result.wait()
+    result = result.events
+    
+    result.forEach(async (evnt, i) => {
+      await vrfCoordinatorMock.callBackWithRandomness(evnt.data, 2 * i, ethets.address)
+    })
   })
 
   describe('Hybridization', () => {

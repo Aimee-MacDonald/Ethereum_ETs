@@ -40,13 +40,13 @@ describe('Eth ETs', () => {
     it('Should return on-chain statistics data by token ID', async () => {
       const stats = await ethets.statsOf(0)
 
-      expect(stats.firing_range).to.equal(2)
-      expect(stats.firing_speed).to.equal(53)
-      expect(stats.reload_speed).to.equal(90)
-      expect(stats.melee_damage).to.equal(16)
-      expect(stats.melee_speed).to.equal(2)
-      expect(stats.magazine_capacity).to.equal(14)
-      expect(stats.health).to.equal(54)
+      expect(stats.firing_range).to.equal(66)
+      expect(stats.firing_speed).to.equal(88)
+      expect(stats.reload_speed).to.equal(8)
+      expect(stats.melee_damage).to.equal(98)
+      expect(stats.melee_speed).to.equal(52)
+      expect(stats.magazine_capacity).to.equal(58)
+      expect(stats.health).to.equal(10)
     })
 
     it('Should return on-chain visual data by token ID', async () => {
@@ -93,7 +93,7 @@ describe('Eth ETs', () => {
     })
     
     it('Should return token attributes as a JSON string', async () => {
-      expect(await ethets.jsonOf(0)).to.equal('[{"trait_type":"firing_range","value":"2"},{"trait_type":"firing_speed","value":"53"},{"trait_type":"reload_speed","value":"90"},{"trait_type":"melee_damage","value":"16"},{"trait_type":"melee_speed","value":"2"},{"trait_type":"magazine_capacity","value":"14"},{"trait_type":"reload_speed","value":"54"}]')
+      expect(await ethets.jsonOf(0)).to.equal('[{"trait_type":"firing_range","value":"66"},{"trait_type":"firing_speed","value":"88"},{"trait_type":"reload_speed","value":"8"},{"trait_type":"melee_damage","value":"98"},{"trait_type":"melee_speed","value":"52"},{"trait_type":"magazine_capacity","value":"58"},{"trait_type":"reload_speed","value":"10"}]')
     })
     
     it('Should return the image URL of a token', async () => {
