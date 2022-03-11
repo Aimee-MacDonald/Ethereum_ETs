@@ -463,33 +463,33 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
     assembly { mstore(attributesBuffer, 0) }
 
-    _appendString(attributesBuffer, '[{"trait_type":"firing_range","value":"');
+    _appendString(attributesBuffer, '[{"display_type":"boost_number","trait_type":"firing_range","value":');
     _appendString(attributesBuffer, _toString(tokenStats.firing_range));
-    _appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, ',"max_value":100},');
 
-    _appendString(attributesBuffer, '{"trait_type":"firing_speed","value":"');
+    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"firing_speed","value":');
     _appendString(attributesBuffer, _toString(tokenStats.firing_speed));
-    _appendString(attributesBuffer, '"},');
+    _appendString(attributesBuffer, ',"max_value":100},');
 
-    _appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
+    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"reload_speed","value":');
     _appendString(attributesBuffer, _toString(tokenStats.reload_speed));
-    _appendString(attributesBuffer, '"},');
-    
-    _appendString(attributesBuffer, '{"trait_type":"melee_damage","value":"');
+    _appendString(attributesBuffer, ',"max_value":100},');
+
+    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"melee_damage","value":');
     _appendString(attributesBuffer, _toString(tokenStats.melee_damage));
-    _appendString(attributesBuffer, '"},');
-    
-    _appendString(attributesBuffer, '{"trait_type":"melee_speed","value":"');
+    _appendString(attributesBuffer, ',"max_value":100},');
+
+    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"melee_speed","value":');
     _appendString(attributesBuffer, _toString(tokenStats.melee_speed));
-    _appendString(attributesBuffer, '"},');
-    
-    _appendString(attributesBuffer, '{"trait_type":"magazine_capacity","value":"');
+    _appendString(attributesBuffer, ',"max_value":100},');
+
+    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"magazine_capacity","value":');
     _appendString(attributesBuffer, _toString(tokenStats.magazine_capacity));
-    _appendString(attributesBuffer, '"},');
-    
-    _appendString(attributesBuffer, '{"trait_type":"reload_speed","value":"');
-    _appendString(attributesBuffer, _toString(tokenStats.health));
-    _appendString(attributesBuffer, '"}]');
+    _appendString(attributesBuffer, ',"max_value":100},');
+
+    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"reload_speed","value":');
+    _appendString(attributesBuffer, _toString(tokenStats.reload_speed));
+    _appendString(attributesBuffer, ',"max_value":100}]');
     
     return string(attributesBuffer);
   }

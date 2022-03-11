@@ -93,7 +93,7 @@ describe('Eth ETs', () => {
     })
     
     it('Should return token attributes as a JSON string', async () => {
-      expect(await ethets.jsonOf(0)).to.equal('[{"trait_type":"firing_range","value":"66"},{"trait_type":"firing_speed","value":"88"},{"trait_type":"reload_speed","value":"8"},{"trait_type":"melee_damage","value":"98"},{"trait_type":"melee_speed","value":"52"},{"trait_type":"magazine_capacity","value":"58"},{"trait_type":"reload_speed","value":"10"}]')
+      expect(await ethets.jsonOf(0)).to.equal('[{"display_type":"boost_number","trait_type":"firing_range","value":66,"max_value":100},{"display_type":"boost_number","trait_type":"firing_speed","value":88,"max_value":100},{"display_type":"boost_number","trait_type":"reload_speed","value":8,"max_value":100},{"display_type":"boost_number","trait_type":"melee_damage","value":98,"max_value":100},{"display_type":"boost_number","trait_type":"melee_speed","value":52,"max_value":100},{"display_type":"boost_number","trait_type":"magazine_capacity","value":58,"max_value":100},{"display_type":"boost_number","trait_type":"reload_speed","value":8,"max_value":100}]')
     })
     
     it('Should return the image URL of a token', async () => {
