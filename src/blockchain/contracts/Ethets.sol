@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
-import "./Base64.sol";
-
 ////
 //  NOT IN PRODUCTION
 //
@@ -45,6 +43,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   bool public hybridizationIsActive;
   string private _baseTokenURI;
   
+  IUtils private UTILS;
   ISidekick private SIDEKICK;
   IERC20 private CRP;
 
@@ -122,9 +121,8 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   //  In production, these parameters can be made constant
   //
   ////
-  constructor(address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
-    // *kovan* VRF_KEY_HASH = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
-    // *kovan* VRF_FEE = 0.1 * 10 ** 18;
+  constructor(address utils, address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET", "CWEE") VRFConsumerBase(vrfCoordinator, linkToken) {
+    UTILS = IUtils(utils);
 
     VRF_KEY_HASH = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
     VRF_FEE = 0.0001 * 10 ** 18;
@@ -323,26 +321,6 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit TokensHybridized(token_1, token_2);
     
   }
-
-  function _fullMint(address recipient, uint256 randomness) private {
-    _safeMint(recipient, _tokenIdTracker.current());
-    _setStats(_tokenIdTracker.current(), randomness);
-    _abilities[_tokenIdTracker.current()] = Ability.NONE;
-    _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
-
-    _tokenIdTracker.increment();
-  }
-
-  function _reserveMint(address recipient, uint256 randomness) private {
-    _safeMint(recipient, MAX_TOKENS + _reservedTokenIdTracker.current());
-    _setStats(_reservedTokenIdTracker.current(), randomness);
-    _abilities[_reservedTokenIdTracker.current()] = Ability.NONE;
-    _weaponTiers[_reservedTokenIdTracker.current()] = WeaponTier.TIER_0;
-
-    _reservedTokenIdTracker.increment();
-    reservedTokensMinted = reservedTokensMinted + 1;
-    emit ReservedTokenMinted(reservedTokensMinted);
-  }
   
   function _setStats(uint256 tokenId, uint256 randomSeed) private {
     uint256 numStats = 7;
@@ -355,23 +333,32 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit StatsRerolled(tokenId);
   }
 
-  function _setAbility(uint256 tokenId, uint256 randomSeed) private {
-    _abilities[tokenId] = Ability(randomSeed % 5 + 1);
-
-    emit AbilityRerolled(tokenId);
-  }
-
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
     RandomnessRequest memory request = _randomnessRequests[requestId];
 
     if(request.requestType == RandomnessRequestType.MINT) {
-      _fullMint(request.recipient, randomness);
+      _safeMint(request.recipient, _tokenIdTracker.current());
+      _setStats(_tokenIdTracker.current(), randomness);
+      _abilities[_tokenIdTracker.current()] = Ability.NONE;
+      _weaponTiers[_tokenIdTracker.current()] = WeaponTier.TIER_0;
+
+      _tokenIdTracker.increment();
     } else if(request.requestType == RandomnessRequestType.MINT_RESERVED) {
-      _reserveMint(request.recipient, randomness);
+      _safeMint(request.recipient, MAX_TOKENS + _reservedTokenIdTracker.current());
+      _setStats(_reservedTokenIdTracker.current(), randomness);
+      _abilities[_reservedTokenIdTracker.current()] = Ability.NONE;
+      _weaponTiers[_reservedTokenIdTracker.current()] = WeaponTier.TIER_0;
+
+      _reservedTokenIdTracker.increment();
+      reservedTokensMinted = reservedTokensMinted + 1;
+      emit ReservedTokenMinted(reservedTokensMinted);
+
     } else if(request.requestType == RandomnessRequestType.STATISTICS) {
       _setStats(request.tokenId, randomness);
     } else if(request.requestType == RandomnessRequestType.ABILITY) {
-      _setAbility(request.tokenId, randomness);
+      _abilities[request.tokenId] = Ability(randomness % 5 + 1);
+
+      emit AbilityRerolled(request.tokenId);
     }
 
     delete _randomnessRequests[requestId];
@@ -399,122 +386,24 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     emit BaseURLChanged(baseURI);
   }
 
-  function _toString(uint256 number) private pure returns (string memory) {
-    bytes memory buffer = new bytes(32);
-    
-    assembly {
-      mstore(buffer, 0)
-    }
-
-    uint256 str = 0;
-    uint256 strLength = 0;
-    
-    unchecked {
-      do {
-        uint256 digit = (number % 10) + 48;
-        str = (str >> 8) | (digit << 248);
-        number /= 10;
-        strLength++;
-      } while (number > 0);
-    }
-    
-    uint256 length = buffer.length;
-
-    assembly {
-      let shift := shl(3, sub(32, strLength))
-      let strc := shl(shift, shr(shift, str))
-
-      let bufferptr := add(buffer, add(0x20, length))
-      mstore(bufferptr, strc)
-      mstore(buffer, add(length, strLength))
-    }
-
-    return string(buffer);
-  }
-  
-  function _appendString(bytes memory buffer, string memory str) private pure {
-    uint256 strLength = bytes(str).length;
-    uint256 length = buffer.length;
-
-    assembly {
-      let strptr := add(str, 0x20)
-      let bufferptr := add(buffer, add(0x20, length))
-      let l := strLength
-
-      for {} gt(l, 31) { l := sub(l, 32) } { 
-        mstore(bufferptr, mload(strptr))
-        strptr := add(strptr, 32)
-        bufferptr := add(bufferptr, 32)
-      }
-
-      if gt(l, 0) {
-        let shift := shl(3, sub(32, l))
-        let strc := shl(shift, shr(shift, mload(strptr)))
-        mstore(bufferptr, strc)
-      }
-  
-      mstore(buffer, add(length, strLength))
-    }        
-  }
-
   function jsonOf(uint256 tokenId) public view returns (string memory) {
+    VisualData memory tokenVisuals = _visualData[tokenId];
     Statistics memory tokenStats = statsOf(tokenId);
-    bytes memory attributesBuffer = new bytes(320);
 
-    assembly { mstore(attributesBuffer, 0) }
-
-    _appendString(attributesBuffer, '[{"display_type":"boost_number","trait_type":"firing_range","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.firing_range));
-    _appendString(attributesBuffer, ',"max_value":100},');
-
-    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"firing_speed","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.firing_speed));
-    _appendString(attributesBuffer, ',"max_value":100},');
-
-    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"reload_speed","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.reload_speed));
-    _appendString(attributesBuffer, ',"max_value":100},');
-
-    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"melee_damage","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.melee_damage));
-    _appendString(attributesBuffer, ',"max_value":100},');
-
-    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"melee_speed","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.melee_speed));
-    _appendString(attributesBuffer, ',"max_value":100},');
-
-    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"magazine_capacity","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.magazine_capacity));
-    _appendString(attributesBuffer, ',"max_value":100},');
-
-    _appendString(attributesBuffer, '{"display_type":"boost_number","trait_type":"reload_speed","value":');
-    _appendString(attributesBuffer, _toString(tokenStats.reload_speed));
-    _appendString(attributesBuffer, ',"max_value":100}]');
-    
-    return string(attributesBuffer);
+    return UTILS.constructJSON(tokenVisuals, tokenStats);
   }
 
   function imageUrlOf(uint256 tokenId) public view returns (string memory) {
-    bytes memory stringBytes = bytes(_baseTokenURI);
-    require(stringBytes.length != 0, "Ethets: Image URL not set");
-
-    bytes memory urlBuffer = new bytes(50);
-    assembly { mstore(urlBuffer, 0) }
-    
-    _appendString(urlBuffer, _baseTokenURI);
-    _appendString(urlBuffer, _toString(tokenId));
-    _appendString(urlBuffer, ".png");
-
-    return string(urlBuffer);
+    return UTILS.constructImageURL(_baseTokenURI, tokenId);
   }
 
   function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
     string memory attributes = jsonOf(tokenId);
     string memory image = imageUrlOf(tokenId);
 
-    bytes memory json = abi.encodePacked('{"name":"CryptoWars Ethereum ET #', _toString(tokenId), '", "attributes":', attributes, ', "image":"', image, '"}');
+    bytes memory json = abi.encodePacked('{"name":"CryptoWars Ethereum ET #', UTILS.toString(tokenId), '", "attributes":', attributes, ', "image":"', image, '"}');
     
-    return string(abi.encodePacked('data:application/json;base64,', Base64.encode(json)));
+    return string(abi.encodePacked('data:application/json;base64,', UTILS.encodeBase64(json)));
   }
 
   function withdrawETH() external onlyOwner {
@@ -537,11 +426,14 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   }
 }
 
-////
-//
-//  Test access to all required data
-//
-////
+interface IUtils {
+  function appendString(bytes memory buffer, string memory str) external pure;
+  function toString(uint256 number) external pure returns (string memory);
+  function encodeBase64(bytes memory data) external pure returns (string memory);
+  function constructJSON(Ethets.VisualData memory tokenVisuals, Ethets.Statistics memory tokenStats) external pure returns (string memory);
+  function constructImageURL(string memory baseTokenURI, uint256 tokenId) external pure returns (string memory);
+}
+
 interface ISidekick {
   function mint(uint256 tokenId_1, uint256 tokenId_2) external;
 }

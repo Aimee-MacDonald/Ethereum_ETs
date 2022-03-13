@@ -5,6 +5,10 @@ describe('Eth ETs', () => {
 
   beforeEach(async () => {
     signers = await ethers.getSigners()
+
+    const Utils = await ethers.getContractFactory('Utils')
+    const utils = await Utils.deploy()
+    await utils.deployed()
     
     const MockLink = await ethers.getContractFactory('MockLink')
     const mockLink = await MockLink.deploy()
@@ -13,7 +17,7 @@ describe('Eth ETs', () => {
     const vRFCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
 
     const Ethets = await ethers.getContractFactory('Ethets')
-    ethets = await Ethets.deploy(vRFCoordinatorMock.address, mockLink.address)
+    ethets = await Ethets.deploy(utils.address, vRFCoordinatorMock.address, mockLink.address)
 
     await mockLink.mint(ethets.address, '20000000000000000000')
     await ethets.toggleSaleIsActive()
@@ -46,7 +50,7 @@ describe('Eth ETs', () => {
     it('Should return a URI for the token', async () => {
       await ethets.setBaseURI('https://ipfs.io/ipfs/QmXqdNcuehdAWi8NougVtrfqiF1XMVmZBwWJdMH4W6sdch/')
 
-      expect(await ethets.tokenURI(4)).to.equal('data:application/json;base64,eyJuYW1lIjoiQ3J5cHRvV2FycyBFdGhlcmV1bSBFVCAjNCIsICJhdHRyaWJ1dGVzIjpbeyJkaXNwbGF5X3R5cGUiOiJib29zdF9udW1iZXIiLCJ0cmFpdF90eXBlIjoiZmlyaW5nX3JhbmdlIiwidmFsdWUiOjAsIm1heF92YWx1ZSI6MTAwfSx7ImRpc3BsYXlfdHlwZSI6ImJvb3N0X251bWJlciIsInRyYWl0X3R5cGUiOiJmaXJpbmdfc3BlZWQiLCJ2YWx1ZSI6MCwibWF4X3ZhbHVlIjoxMDB9LHsiZGlzcGxheV90eXBlIjoiYm9vc3RfbnVtYmVyIiwidHJhaXRfdHlwZSI6InJlbG9hZF9zcGVlZCIsInZhbHVlIjowLCJtYXhfdmFsdWUiOjEwMH0seyJkaXNwbGF5X3R5cGUiOiJib29zdF9udW1iZXIiLCJ0cmFpdF90eXBlIjoibWVsZWVfZGFtYWdlIiwidmFsdWUiOjAsIm1heF92YWx1ZSI6MTAwfSx7ImRpc3BsYXlfdHlwZSI6ImJvb3N0X251bWJlciIsInRyYWl0X3R5cGUiOiJtZWxlZV9zcGVlZCIsInZhbHVlIjowLCJtYXhfdmFsdWUiOjEwMH0seyJkaXNwbGF5X3R5cGUiOiJib29zdF9udW1iZXIiLCJ0cmFpdF90eXBlIjoibWFnYXppbmVfY2FwYWNpdHkiLCJ2YWx1ZSI6MCwibWF4X3ZhbHVlIjoxMDB9LHsiZGlzcGxheV90eXBlIjoiYm9vc3RfbnVtYmVyIiwidHJhaXRfdHlwZSI6InJlbG9hZF9zcGVlZCIsInZhbHVlIjowLCJtYXhfdmFsdWUiOjEwMH1dLCAiaW1hZ2UiOiJodHRwczovL2lwZnMuaW8vaXBmcy9RbVhxZE5jdWVoZEFXaThOb3VnVnRyZnFpRjFYTVZtWkJ3V0pkTUg0VzZzZGNoLzQucG5nIn0=')
+      expect(await ethets.tokenURI(4)).to.equal('data:application/json;base64,eyJuYW1lIjoiQ3J5cHRvV2FycyBFdGhlcmV1bSBFVCAjNCIsICJhdHRyaWJ1dGVzIjpbeyJ0cmFpdF90eXBlIjoiYmFja2dyb3VuZCIsInZhbHVlIjoiIn0seyJ0cmFpdF90eXBlIjoiYmVsdCIsInZhbHVlIjoiIn0seyJ0cmFpdF90eXBlIjoiZmFjZSBhY2Nlc3NvcnkiLCJ2YWx1ZSI6IiJ9LHsidHJhaXRfdHlwZSI6ImhlYWRfZ2VhciIsInZhbHVlIjoiIn0seyJ0cmFpdF90eXBlIjoib3V0Zml0IiwidmFsdWUiOiIifSx7InRyYWl0X3R5cGUiOiJyYW5rIiwidmFsdWUiOiIifSx7InRyYWl0X3R5cGUiOiJ0eXBlIiwidmFsdWUiOiIifSx7InRyYWl0X3R5cGUiOiJ3ZWFwb24iLCJ2YWx1ZSI6IiJ9LHsiZGlzcGxheV90eXBlIjoiYm9vc3RfbnVtYmVyIiwidHJhaXRfdHlwZSI6ImZpcmluZ19yYW5nZSIsInZhbHVlIjowLCJtYXhfdmFsdWUiOjEwMH0seyJkaXNwbGF5X3R5cGUiOiJib29zdF9udW1iZXIiLCJ0cmFpdF90eXBlIjoiZmlyaW5nX3NwZWVkIiwidmFsdWUiOjAsIm1heF92YWx1ZSI6MTAwfSx7ImRpc3BsYXlfdHlwZSI6ImJvb3N0X251bWJlciIsInRyYWl0X3R5cGUiOiJyZWxvYWRfc3BlZWQiLCJ2YWx1ZSI6MCwibWF4X3ZhbHVlIjoxMDB9LHsiZGlzcGxheV90eXBlIjoiYm9vc3RfbnVtYmVyIiwidHJhaXRfdHlwZSI6Im1lbGVlX2RhbWFnZSIsInZhbHVlIjowLCJtYXhfdmFsdWUiOjEwMH0seyJkaXNwbGF5X3R5cGUiOiJib29zdF9udW1iZXIiLCJ0cmFpdF90eXBlIjoibWVsZWVfc3BlZWQiLCJ2YWx1ZSI6MCwibWF4X3ZhbHVlIjoxMDB9LHsiZGlzcGxheV90eXBlIjoiYm9vc3RfbnVtYmVyIiwidHJhaXRfdHlwZSI6Im1hZ2F6aW5lX2NhcGFjaXR5IiwidmFsdWUiOjAsIm1heF92YWx1ZSI6MTAwfSx7ImRpc3BsYXlfdHlwZSI6ImJvb3N0X251bWJlciIsInRyYWl0X3R5cGUiOiJoZWFsdGgiLCJ2YWx1ZSI6MCwibWF4X3ZhbHVlIjoxMDB9XSwgImltYWdlIjoiaHR0cHM6Ly9pcGZzLmlvL2lwZnMvUW1YcWROY3VlaGRBV2k4Tm91Z1Z0cmZxaUYxWE1WbVpCd1dKZE1INFc2c2RjaC80LnBuZyJ9')
     })
 
     it('Should return the Owner of the contract', async () => {

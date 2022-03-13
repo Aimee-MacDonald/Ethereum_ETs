@@ -6,6 +6,10 @@ describe('Eth ETs', () => {
   beforeEach(async () => {
     signers = await ethers.getSigners()
 
+    const Utils = await ethers.getContractFactory('Utils')
+    const utils = await Utils.deploy()
+    await utils.deployed()
+
     const MockLink = await ethers.getContractFactory('MockLink')
     const mockLink = await MockLink.deploy()
 
@@ -13,7 +17,7 @@ describe('Eth ETs', () => {
     const vRFCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
 
     const Ethets = await ethers.getContractFactory('Ethets')
-    ethets = await Ethets.deploy(vRFCoordinatorMock.address, mockLink.address)
+    ethets = await Ethets.deploy(utils.address, vRFCoordinatorMock.address, mockLink.address)
 
     await mockLink.mint(ethets.address, '20000000000000000000')
     await ethets.toggleSaleIsActive()
@@ -93,7 +97,9 @@ describe('Eth ETs', () => {
     })
     
     it('Should return token attributes as a JSON string', async () => {
-      expect(await ethets.jsonOf(0)).to.equal('[{"display_type":"boost_number","trait_type":"firing_range","value":66,"max_value":100},{"display_type":"boost_number","trait_type":"firing_speed","value":88,"max_value":100},{"display_type":"boost_number","trait_type":"reload_speed","value":8,"max_value":100},{"display_type":"boost_number","trait_type":"melee_damage","value":98,"max_value":100},{"display_type":"boost_number","trait_type":"melee_speed","value":52,"max_value":100},{"display_type":"boost_number","trait_type":"magazine_capacity","value":58,"max_value":100},{"display_type":"boost_number","trait_type":"reload_speed","value":8,"max_value":100}]')
+      await ethets.setVisualDataOf(0, 'Rome VCoins', 'Arctic', 'None', 'ET HB Bravo', 'Eye Black', 'PK Beret', 'Knife', 'Spy', 1)
+
+      expect(await ethets.jsonOf(0)).to.equal('[{"trait_type":"background","value":"Rome VCoins"},{"trait_type":"belt","value":"None"},{"trait_type":"face accessory","value":"Eye Black"},{"trait_type":"head_gear","value":"PK Beret"},{"trait_type":"outfit","value":"Arctic"},{"trait_type":"rank","value":"Spy"},{"trait_type":"type","value":"ET HB Bravo"},{"trait_type":"weapon","value":"Knife"},{"display_type":"boost_number","trait_type":"firing_range","value":66,"max_value":100},{"display_type":"boost_number","trait_type":"firing_speed","value":88,"max_value":100},{"display_type":"boost_number","trait_type":"reload_speed","value":8,"max_value":100},{"display_type":"boost_number","trait_type":"melee_damage","value":98,"max_value":100},{"display_type":"boost_number","trait_type":"melee_speed","value":52,"max_value":100},{"display_type":"boost_number","trait_type":"magazine_capacity","value":58,"max_value":100},{"display_type":"boost_number","trait_type":"health","value":10,"max_value":100}]')
     })
     
     it('Should return the image URL of a token', async () => {

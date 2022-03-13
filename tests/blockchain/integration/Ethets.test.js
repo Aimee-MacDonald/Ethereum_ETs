@@ -6,6 +6,10 @@ describe('Ethets integration', () => {
   beforeEach(async () => {
     signers = await ethers.getSigners()
 
+    const Utils = await ethers.getContractFactory('Utils')
+    const utils = await Utils.deploy()
+    await utils.deployed()
+
     const MockLink = await ethers.getContractFactory('MockLink')
     const mockLink = await MockLink.deploy()
 
@@ -13,7 +17,7 @@ describe('Ethets integration', () => {
     const vrfCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
 
     const Ethets = await ethers.getContractFactory('Ethets')
-    ethets = await Ethets.deploy(vrfCoordinatorMock.address, mockLink.address)
+    ethets = await Ethets.deploy(utils.address, vrfCoordinatorMock.address, mockLink.address)
 
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
     ethetsks = await Ethetsks.deploy(ethets.address)
