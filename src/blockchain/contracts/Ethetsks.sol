@@ -89,14 +89,20 @@ contract Ethetsks is ERC721Enumerable {
   }
 
   function statsOf(uint256 tokenId) external view returns (Statistics memory) {
+    require(_exists(tokenId), "Ethetsks: Token does not Exist");
+
     return _statistics[tokenId];
   }
 
   function typeOf(uint256 tokenId) external view returns (uint256) {
+    require(_exists(tokenId), "Ethetsks: Token does not Exist");
+
     return _tokenTypes[tokenId];
   }
 
   function abilityOf(uint256 tokenId) external view returns (AbilitySet memory) {
+    require(_exists(tokenId), "Ethetsks: Token does not Exist");
+    
     return _abilities[tokenId];
   }
 }

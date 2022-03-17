@@ -36,6 +36,10 @@ describe('Ethetsks', () => {
     expect(ethetsks.mint(0, 1)).to.be.revertedWith('Ethetsks: Minting restricted')
   })
 
+  it("Should revert statsOf for tokens that don't exist", async () => {
+    expect(ethetsks.statsOf(0)).to.be.revertedWith('Ethetsks: Token does not Exist')
+  })
+
   it("Should be minted with the combined parents' stats", async () => {
     await mockEthets.hybridize(0, 1)
 
@@ -48,6 +52,10 @@ describe('Ethetsks', () => {
     expect(stats.melee_speed).to.equal(3)
     expect(stats.magazine_capacity).to.equal(3)
     expect(stats.health).to.equal(3)
+  })
+
+  it("Should revert typeOf for tokens that don't exist", async () => {
+    expect(ethetsks.typeOf(0)).to.be.revertedWith('Ethetsks: Token does not Exist')
   })
 
   it('Should be minted with the correct type', async () => {
@@ -81,6 +89,10 @@ describe('Ethetsks', () => {
     expect(await ethetsks.typeOf(7)).to.equal(3);
     expect(await ethetsks.typeOf(8)).to.equal(4);
     expect(await ethetsks.typeOf(9)).to.equal(4);
+  })
+
+  it("Should revert abilityOf for tokens that don't exist", async () => {
+    expect(ethetsks.abilityOf(0)).to.be.revertedWith('Ethetsks: Token does not Exist')
   })
 
   it("Should be minted with both the parents' abilities", async () => {
