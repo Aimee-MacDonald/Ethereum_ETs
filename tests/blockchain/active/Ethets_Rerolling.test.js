@@ -24,6 +24,7 @@ describe('Eth ETs', () => {
 
     await mockLink.mint(ethets.address, '20000000000000000000')
     await mockCRP.mint(signers[0].address, 10000)
+    await mockCRP.mint(signers[1].address, 10000)
 
     await ethets.toggleSaleIsActive()
     let requestId = await ethets.mint(signers[0].address, 1, {value: ethers.utils.parseEther('0.035')})
@@ -61,6 +62,16 @@ describe('Eth ETs', () => {
     it('Should revert if rerollingIsActive is false', () => {
       expect(ethets.rerollStats(0)).to.be.revertedWith("Ethets: Rerolling is not active")
       expect(ethets.rerollAbility(0)).to.be.revertedWith("Ethets: Rerolling is not active")
+    })
+
+    it('Should revert if token is not owned by transaction caller', async () => {
+      await ethets.setCRP(mockCRP.address)
+      await ethets.toggleRerollingIsActive()
+      await mockCRP.connect(signers[1]).approve(ethets.address, 10000)
+
+      expect(ethets.connect(signers[1]).rerollStats(0)).to.be.revertedWith("Ethets: This token does not belong to you")
+      expect(ethets.connect(signers[1]).rerollAbility(0)).to.be.revertedWith("Ethets: This token does not belong to you")
+      expect(ethets.connect(signers[1]).upgradeWeapon(0)).to.be.revertedWith("Ethets: This token does not belong to you")
     })
   })
 

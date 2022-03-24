@@ -10,8 +10,6 @@ import Information from './Sections/Information/Information'
 import Funds from './Sections/Funds/Funds'
 import Hybridization from './Sections/Hybridization/Hybridization'
 
-import Random from './Sections/Random/Random'
-
 const Main = () => {
   const [ activeSection, setActiveSection ] = useState(0)
 
@@ -21,14 +19,12 @@ const Main = () => {
       <button onClick={() => setActiveSection(1)}>Inherited</button>
       <button onClick={() => setActiveSection(2)}>Minting</button>
       <button onClick={() => setActiveSection(3)}>Information</button>
-      <button onClick={() => setActiveSection(4)}>Random</button>
       <button onClick={() => setActiveSection(5)}>Funds</button>
       <button onClick={() => setActiveSection(6)}>Hybridization</button>
 
       {activeSection === 1 && <Inherited/>}
       {activeSection === 2 && <Minting/>}
       {activeSection === 3 && <Information/>}
-      {activeSection === 4 && <Random/>}
       {activeSection === 5 && <Funds/>}
       {activeSection === 6 && <Hybridization/>}
     </div>

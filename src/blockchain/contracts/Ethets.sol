@@ -255,6 +255,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   }
 
   function rerollStats(uint256 tokenId) external nonReentrant {
+    require(ownerOf(tokenId) == _msgSender(), "Ethets: This token does not belong to you");
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
@@ -277,6 +278,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   function rerollAbility(uint tokenId) external nonReentrant {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
+    require(ownerOf(tokenId) == _msgSender(), "Ethets: This token does not belong to you");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
     CRP.transferFrom(_msgSender(), address(this), 2000);
@@ -290,6 +292,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   function upgradeWeapon(uint256 tokenId) external nonReentrant {
     require(rerollingIsActive, "Ethets: Rerolling is not active");
     require(address(CRP) != address(0), "Ethets: CRP not set");
+    require(ownerOf(tokenId) == _msgSender(), "Ethets: This token does not belong to you");
     require(uint256(_weaponTiers[tokenId]) < 5, "Ethets: Weapon is already fully upgraded");
 
     uint256 weaponTier = uint256(_weaponTiers[tokenId]);

@@ -1,5 +1,5 @@
 import BaseInterface from './BaseInterface'
-import MockCRP from '../artifacts/src/blockchain/contracts/MockCRP.sol/MockCRP.json'
+import MockCRP from '../artifacts/src/blockchain/contracts/Cryptonium.sol/Cryptonium.json'
 import { ethers } from 'ethers'
 
 export default class MockCRPInterface extends BaseInterface {
