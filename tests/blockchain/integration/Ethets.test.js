@@ -20,7 +20,7 @@ describe('Ethets integration', () => {
     ethets = await Ethets.deploy(utils.address, vrfCoordinatorMock.address, mockLink.address)
 
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
-    ethetsks = await Ethetsks.deploy(ethets.address)
+    ethetsks = await Ethetsks.deploy(ethets.address, vrfCoordinatorMock.address, mockLink.address)
 
     const Cryptonium = await ethers.getContractFactory('Cryptonium')
     const cryptonium = await Cryptonium.deploy()

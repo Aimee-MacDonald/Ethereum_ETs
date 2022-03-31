@@ -9,8 +9,14 @@ describe('Ethetsks', () => {
     const MockEthets = await ethers.getContractFactory('MockEthets')
     mockEthets = await MockEthets.deploy()
 
+    const MockLink = await ethers.getContractFactory('MockLink')
+    const mockLink = await MockLink.deploy()
+
+    const VRFCoordinatorMock = await ethers.getContractFactory('VRFCoordinatorMock')
+    const vrfCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
+
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
-    ethetsks = await Ethetsks.deploy(mockEthets.address)
+    ethetsks = await Ethetsks.deploy(mockEthets.address, vrfCoordinatorMock.address, mockLink.address)
 
     await mockEthets.setSidekick(ethetsks.address)
     
@@ -163,7 +169,35 @@ describe('Ethetsks', () => {
 
   ////
   //
-  //  Should only return stats and type data for existing tokens
+  //  function setCRP(address contractAddress) external onlyOwner {}
+  //
+  //  These should be useful, let's just keep in mind for now
+  //  function statsOf(uint256 tokenId) public view returns (Statistics memory) {}
+  //  function visualDataOf(uint256 tokenId) public view returns (VisualData memory) {}
+  //  function rankGroupOf(uint256 tokenId) external view returns (uint256) {}
+  //  function abilityOf(uint256 tokenId) external view returns (Ability) {}
+  //  function stringAbilityOf(uint256 tokenId) external view returns (string memory) {}
+  //  function weaponTierOf(uint256 tokenId) external view returns (WeaponTier) {}
+  
+  //  Not sure if this will be required - probably not
+  //  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon, string memory rank, uint256 rankGroup) external onlyOwner {}
+  
+  //  Standard
+  //  function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Enumerable) {}
+  //  function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {}
+  //  function _setBaseURI(string memory baseURI) internal virtual {}
+  //  function _baseURI() internal view override returns (string memory) {}
+  //  function setBaseURI(string memory baseURI) external onlyOwner {}
+  
+  //  These are helpful, probably required
+  //  function jsonOf(uint256 tokenId) public view returns (string memory) {}
+  //  function imageUrlOf(uint256 tokenId) public view returns (string memory) {}
+  //  function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {}
+  
+  //  Also probably a good idea to keep in mind
+  //  function withdrawETH() external onlyOwner {}
+  //  function withdrawLINK() external onlyOwner {}
+  //  function withdrawCRP() external onlyOwner {}
   //
   ////
 })

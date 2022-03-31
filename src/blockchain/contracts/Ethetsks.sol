@@ -3,12 +3,27 @@ pragma solidity ^0.8.11;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
-contract Ethetsks is ERC721Enumerable {
+////
+//  NOT IN PRODUCTION
+//
+import "hardhat/console.sol";
+//
+//  NOT IN PRODUCTION
+////
+
+contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
   IEthets private ETHETS;
+  bool public airdropSeeded;
+  bool public airdropExecuted;
+  uint256 private airdropSeed;
 
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIdTracker;
+
+  bytes32 private immutable VRF_KEY_HASH;
+  uint256 private immutable VRF_FEE;
 
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => uint256) _tokenTypes;
@@ -38,8 +53,12 @@ contract Ethetsks is ERC721Enumerable {
     DECOY
   }
 
-  constructor(address ethetsAddress) ERC721("CryptoWars Ethereum ET Sidekick", "CWEES") {
+  event RandomnessRequested(bytes32 requestId);
+
+  constructor(address ethetsAddress, address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET Sidekick", "CWEES") VRFConsumerBase(vrfCoordinator, linkToken) {
     ETHETS = IEthets(ethetsAddress);
+    VRF_KEY_HASH = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+    VRF_FEE = 0.0001 * 10 ** 18;
   }
 
   function mint(uint256 token_1, uint256 token_2) external {
@@ -104,6 +123,46 @@ contract Ethetsks is ERC721Enumerable {
     require(_exists(tokenId), "Ethetsks: Token does not Exist");
     
     return _abilities[tokenId];
+  }
+
+  function airdrop(address[] memory addresses) external {
+    require(airdropSeeded, "Ethetsks: Airdrop not seeded");
+    require(!airdropExecuted, "Ethetstks: Airdrop already executed");
+
+    uint256 total = totalSupply();
+
+    for(uint256 i = 0; i < addresses.length; i++) {
+      uint8[] memory statValues = new uint8[](7);
+      for(uint256 j = 0; j < 7; j++) statValues[j] = uint8(uint256(keccak256(abi.encodePacked(airdropSeed, i * 2, j))) % 10 + 1);
+      _statistics[_tokenIdTracker.current()] = Statistics(statValues[0], statValues[1], statValues[2], statValues[3], statValues[4], statValues[5], statValues[6]);
+ 
+      _tokenTypes[_tokenIdTracker.current()] = uint256(keccak256(abi.encodePacked(airdropSeed, i * 4))) % 4 + 1;
+
+      uint256[] memory abilityVals = new uint256[](2);
+      for(uint256 j = 0; j < 2; j++) abilityVals[j] = uint256(keccak256(abi.encodePacked(airdropSeed, i * 8, j))) % 5 + 1;
+      _abilities[_tokenIdTracker.current()] = AbilitySet(Ability(abilityVals[0]), Ability(abilityVals[1]));
+
+      _safeMint(addresses[i], _tokenIdTracker.current());
+      _tokenIdTracker.increment();
+    }
+
+    require(totalSupply() - total == addresses.length, "Ethetsks: Airdrop failed unexpectedly");
+    airdropExecuted = true;
+  }
+
+  function seedAirdrop() external {
+    require(!airdropSeeded, "Ethetsks: Airdrop already seeded");
+    
+    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+
+    emit RandomnessRequested(requestId);
+  }
+
+  function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    if(randomness != 0) {
+      airdropSeeded = true;
+      airdropSeed = randomness;
+    }
   }
 }
 

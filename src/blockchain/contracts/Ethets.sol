@@ -33,7 +33,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   uint256[10] private _hybridCosts;
   bytes32 private immutable VRF_KEY_HASH;
   uint256 private immutable VRF_FEE;
-  uint256 public constant MAX_TOKENS = 300; //  8000 in production
+  uint256 public constant MAX_TOKENS = 300; //  Should be set to 8000 in production
   uint256 public constant MAX_RESERVED_TOKENS = 333;
   uint256 public reservedTokensMinted;
   
