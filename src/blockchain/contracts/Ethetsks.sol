@@ -30,6 +30,7 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => Statistics) private _statistics;
   mapping(uint256 => uint256) _tokenTypes;
   mapping(uint256 => AbilitySet) _abilities;
+  mapping(uint256 => uint256) _variants;
 
   struct Statistics {
     uint8 firing_range;
@@ -72,6 +73,8 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
     _setStats(token_1, token_2);
     _setTokenType(token_1, token_2);
     _setAbilities(token_1, token_2);
+
+    //  Request Randomness and set token variant
 
     _safeMint(recipient, _tokenIdTracker.current());
     _tokenIdTracker.increment();
@@ -145,6 +148,9 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
       for(uint256 j = 0; j < 2; j++) abilityVals[j] = uint256(keccak256(abi.encodePacked(airdropSeed, i * 8, j))) % 5 + 1;
       _abilities[_tokenIdTracker.current()] = AbilitySet(Ability(abilityVals[0]), Ability(abilityVals[1]));
 
+      //  Randomly select a token variant
+      _variants[_tokenIdTracker.current()] = uint256(keccak256(abi.encodePacked(airdropSeed, i * 16))) % 4 + 1;
+
       _safeMint(addresses[i], _tokenIdTracker.current());
       _tokenIdTracker.increment();
     }
@@ -206,6 +212,12 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
     }
     
     return finalString;
+  }
+
+  function variantOf(uint256 tokenId) external view returns (uint256) {
+    //  Check that token exists
+
+    return _variants[tokenId];
   }
 }
 

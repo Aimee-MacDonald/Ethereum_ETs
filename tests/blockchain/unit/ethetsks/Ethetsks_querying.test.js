@@ -61,5 +61,8 @@ describe('Ethetsks Querying', () => {
     expect(await ethetsks.stringAbilityOf(1)).to.equal('Health Regen/Dual Weapons')
   })
 
-  it('Should return the variant of a token', async () => expect(true).to.equal(false))
+  it('Should return the variant of a token', async () => {
+    expect(await ethetsks.variantOf(0)).to.equal(2)
+    expect(await ethetsks.variantOf(1)).to.equal(3)
+  })
 })
