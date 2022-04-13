@@ -8,16 +8,19 @@ describe('Ethetsks Airdrop', () => {
     signers = await ethers.getSigners()
     addresses = signers.map(signer => signer.address)
 
+    const Utils = await ethers.getContractFactory('Utils')
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
     const MockEthets = await ethers.getContractFactory('MockEthets')
     const VRFCoordinatorMock = await ethers.getContractFactory('VRFCoordinatorMock')
     const MockLink = await ethers.getContractFactory('MockLink')
+    
+    const utils = await Utils.deploy()
 
     const mockLink = await MockLink.deploy()
     vrfCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
 
     const mockEthets = await MockEthets.deploy()
-    ethetsks = await Ethetsks.deploy(mockEthets.address, vrfCoordinatorMock.address, mockLink.address)
+    ethetsks = await Ethetsks.deploy(mockEthets.address, utils.address, vrfCoordinatorMock.address, mockLink.address)
   })
 
   it('Should airdrop tokens to a list of addresses', async () => {

@@ -9,14 +9,18 @@ describe('Ethetsks', () => {
     const MockEthets = await ethers.getContractFactory('MockEthets')
     mockEthets = await MockEthets.deploy()
 
+    const Utils = await ethers.getContractFactory('Utils')
+    const utils = await Utils.deploy()
+
     const MockLink = await ethers.getContractFactory('MockLink')
     const mockLink = await MockLink.deploy()
 
     const VRFCoordinatorMock = await ethers.getContractFactory('VRFCoordinatorMock')
     const vrfCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
 
+
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
-    ethetsks = await Ethetsks.deploy(mockEthets.address, vrfCoordinatorMock.address, mockLink.address)
+    ethetsks = await Ethetsks.deploy(mockEthets.address, utils.address, vrfCoordinatorMock.address, mockLink.address)
 
     await mockEthets.setSidekick(ethetsks.address)
     

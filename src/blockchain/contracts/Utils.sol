@@ -35,6 +35,18 @@ contract Utils {
     }        
   }
 
+  function concatenateStrings(string memory string_0, string memory string_1) external view returns (string memory) {
+    bytes memory stringBuffer = new bytes(1);
+    assembly { mstore(stringBuffer, 0) }
+    
+    appendString(stringBuffer, string_0);
+    appendString(stringBuffer, string_1);
+
+    string memory finalString = string(stringBuffer);
+
+    return finalString;
+  }
+
   function toString(uint256 number) public pure returns (string memory) {
     bytes memory buffer = new bytes(32);
     

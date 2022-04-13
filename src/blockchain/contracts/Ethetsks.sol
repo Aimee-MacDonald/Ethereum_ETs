@@ -15,6 +15,8 @@ import "hardhat/console.sol";
 
 contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
   IEthets private ETHETS;
+  IUtils private UTILS;
+
   bool public airdropSeeded;
   bool public airdropExecuted;
   uint256 private airdropSeed;
@@ -40,8 +42,8 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
   }
 
   struct AbilitySet {
+    Ability ability_0;
     Ability ability_1;
-    Ability ability_2;
   }
 
   enum Ability {
@@ -55,8 +57,9 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
 
   event RandomnessRequested(bytes32 requestId);
 
-  constructor(address ethetsAddress, address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET Sidekick", "CWEES") VRFConsumerBase(vrfCoordinator, linkToken) {
+  constructor(address ethetsAddress, address utilsAddress, address vrfCoordinator, address linkToken) ERC721("CryptoWars Ethereum ET Sidekick", "CWEES") VRFConsumerBase(vrfCoordinator, linkToken) {
     ETHETS = IEthets(ethetsAddress);
+    UTILS = IUtils(utilsAddress);
     VRF_KEY_HASH = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
     VRF_FEE = 0.0001 * 10 ** 18;
   }
@@ -164,6 +167,46 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
       airdropSeed = randomness;
     }
   }
+
+  function stringAbilityOf(uint256 tokenId) external view returns (string memory) {
+    AbilitySet memory abilities = _abilities[tokenId];
+    string memory finalString = "";
+
+    uint256 ability_0 = uint256(abilities.ability_0);
+    uint256 ability_1 = uint256(abilities.ability_1);
+
+    if(ability_0 == 0) {
+      finalString = UTILS.concatenateStrings(finalString, "None");
+    } else if(ability_0 == 1) {
+      finalString = UTILS.concatenateStrings(finalString, "Health Regen");
+    } else if(ability_0 == 2) {
+      finalString = UTILS.concatenateStrings(finalString, "Shield");
+    } else if(ability_0 == 3) {
+      finalString = UTILS.concatenateStrings(finalString, "Dual Weapons");
+    } else if(ability_0 == 4) {
+      finalString = UTILS.concatenateStrings(finalString, "Grenades");
+    } else if(ability_0 == 5) {
+      finalString = UTILS.concatenateStrings(finalString, "Decoy");
+    }
+
+    finalString = UTILS.concatenateStrings(finalString, "/");
+
+    if(ability_1 == 0) {
+      finalString = UTILS.concatenateStrings(finalString, "None");
+    } else if(ability_1 == 1) {
+      finalString = UTILS.concatenateStrings(finalString, "Health Regen");
+    } else if(ability_1 == 2) {
+      finalString = UTILS.concatenateStrings(finalString, "Shield");
+    } else if(ability_1 == 3) {
+      finalString = UTILS.concatenateStrings(finalString, "Dual Weapons");
+    } else if(ability_1 == 4) {
+      finalString = UTILS.concatenateStrings(finalString, "Grenades");
+    } else if(ability_1 == 5) {
+      finalString = UTILS.concatenateStrings(finalString, "Decoy");
+    }
+    
+    return finalString;
+  }
 }
 
 interface IEthets {
@@ -190,4 +233,8 @@ interface IEthets {
   function statsOf(uint256 tokenId) external view returns (Statistics memory);
   function rankGroupOf(uint256 tokenId) external view returns (uint256);
   function abilityOf(uint256 tokenId) external view returns (Ability);
+}
+
+interface IUtils {
+  function concatenateStrings(string memory string_0, string memory string_1) external pure returns (string memory);
 }
