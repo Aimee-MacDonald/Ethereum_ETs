@@ -18,7 +18,6 @@ describe('Ethetsks', () => {
     const VRFCoordinatorMock = await ethers.getContractFactory('VRFCoordinatorMock')
     const vrfCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
 
-
     const Ethetsks = await ethers.getContractFactory('Ethetsks')
     ethetsks = await Ethetsks.deploy(mockEthets.address, utils.address, vrfCoordinatorMock.address, mockLink.address)
 
@@ -175,17 +174,6 @@ describe('Ethetsks', () => {
   //
   //  function setCRP(address contractAddress) external onlyOwner {}
   //
-  //  These should be useful, let's just keep in mind for now
-  //  function statsOf(uint256 tokenId) public view returns (Statistics memory) {}
-  //  function visualDataOf(uint256 tokenId) public view returns (VisualData memory) {}
-  //  function rankGroupOf(uint256 tokenId) external view returns (uint256) {}
-  //  function abilityOf(uint256 tokenId) external view returns (Ability) {}
-  //  function stringAbilityOf(uint256 tokenId) external view returns (string memory) {}
-  //  function weaponTierOf(uint256 tokenId) external view returns (WeaponTier) {}
-  
-  //  Not sure if this will be required - probably not
-  //  function setVisualDataOf(uint256 tokenId, string memory background, string memory outfit, string memory belt, string memory tokenType, string memory faceAccessory, string memory headGear, string memory weapon, string memory rank, uint256 rankGroup) external onlyOwner {}
-  
   //  Standard
   //  function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Enumerable) {}
   //  function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable) returns (bool) {}

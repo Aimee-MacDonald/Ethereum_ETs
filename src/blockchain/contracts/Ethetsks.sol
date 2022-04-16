@@ -31,6 +31,7 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
   mapping(uint256 => uint256) _tokenTypes;
   mapping(uint256 => AbilitySet) _abilities;
   mapping(uint256 => uint256) _variants;
+  mapping(bytes32 => RandomnessRequest) _randomnessRequests;
 
   struct Statistics {
     uint8 firing_range;
@@ -45,6 +46,17 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
   struct AbilitySet {
     Ability ability_0;
     Ability ability_1;
+  }
+
+  struct RandomnessRequest {
+    uint256 tokenId;
+    RandomnessRequestType requestType;
+  }
+
+  enum RandomnessRequestType {
+    NONE,
+    AIRDROP,
+    HYBRIDIZE
   }
 
   enum Ability {
@@ -74,7 +86,9 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
     _setTokenType(token_1, token_2);
     _setAbilities(token_1, token_2);
 
-    //  Request Randomness and set token variant
+    bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+    _randomnessRequests[requestId] = RandomnessRequest(_tokenIdTracker.current(), RandomnessRequestType.HYBRIDIZE);
+    emit RandomnessRequested(requestId);
 
     _safeMint(recipient, _tokenIdTracker.current());
     _tokenIdTracker.increment();
@@ -163,15 +177,39 @@ contract Ethetsks is ERC721Enumerable, VRFConsumerBase {
     require(!airdropSeeded, "Ethetsks: Airdrop already seeded");
     
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
+    _randomnessRequests[requestId] = RandomnessRequest(0, RandomnessRequestType.AIRDROP);
 
     emit RandomnessRequested(requestId);
   }
 
   function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    RandomnessRequest memory randomnessRequest = _randomnessRequests[requestId];
+
+    uint256 requestType = uint256(randomnessRequest.requestType);
+
+    if(requestType == 1 && airdropSeeded == false && randomness != 0) {
+      airdropSeeded = true;
+      airdropSeed = randomness;
+    } else if(requestType == 2) {
+      _variants[randomnessRequest.tokenId] = randomness % 4 + 1;
+    }
+
+    //  Delete Randomness Request
+
+/* 
+    if(randomnessRequest.type == airdropSeed && airdropSeeded == false) {
+      //  Seed Airdrop
+    } else if(randomnessRequest.type == hybridize && tokenExists && tokenVariant == 0) {
+      //  Set token variant
+    }
+     */
+
+/* 
     if(randomness != 0) {
       airdropSeeded = true;
       airdropSeed = randomness;
     }
+     */
   }
 
   function stringAbilityOf(uint256 tokenId) external view returns (string memory) {
