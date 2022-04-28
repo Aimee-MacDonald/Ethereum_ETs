@@ -9,4 +9,8 @@ contract Cryptonium is ERC20 {
   function mint(address recipient, uint256 amount) external {
     _mint(recipient, amount);
   }
+
+  function decimals() public view virtual override returns (uint8) {
+    return 0;
+  }
 }

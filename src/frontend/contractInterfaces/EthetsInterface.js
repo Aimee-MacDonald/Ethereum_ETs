@@ -4,10 +4,9 @@ import { ethers } from 'ethers'
 
 export default class EthetsInterface extends BaseInterface {
   constructor() {
-    super('0x7487e67d8e01a5FCacA14AB34FB9503b9d7c6077', Ethets.abi)
-    // Mumbai: 0xFf9661Cc7e8eC75702bcFD648c08D0Aa443c1c90
-    // Local: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
-    // Kovan: 0xEfE1bC957a98a148fde0BDF3D9CC77d52c3de569
+    super('0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9', Ethets.abi)
+    
+    //  0x7487e67d8e01a5FCacA14AB34FB9503b9d7c6077
   }
 
   name() {
@@ -49,6 +48,13 @@ export default class EthetsInterface extends BaseInterface {
     if(super.ethCheck) {
       return super.getContract(true)
         .then(contract => contract.transferOwnership(to))
+    }
+  }
+
+  balance() {
+    if(super.ethCheck) {
+      return super.getSignerAddress()
+        .then(address => this.balanceOf(address))
     }
   }
 
@@ -127,8 +133,8 @@ export default class EthetsInterface extends BaseInterface {
     if(super.ethCheck) {
       return super.getContract(true)
         .then(contract => {
-          const value = 0.035 * amount
-          contract.mint(recipient, amount, {value: ethers.utils.parseEther(`${value}`)})
+          const cost = 0.035 * amount
+          contract.mint(recipient, amount, {value: ethers.utils.parseEther(`${cost}`)})
         })
     }
   }

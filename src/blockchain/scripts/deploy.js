@@ -1,6 +1,58 @@
 const hre = require('hardhat')
 
 async function main() {
+  const Utils = await hre.ethers.getContractFactory('Utils')
+  const MockLink = await hre.ethers.getContractFactory('MockLink')
+  const VRFCoordinatorMock = await hre.ethers.getContractFactory('VRFCoordinatorMock')
+  const Ethets = await hre.ethers.getContractFactory('Ethets')
+  const Ethetsks = await hre.ethers.getContractFactory('Ethetsks')
+  const Krypton = await hre.ethers.getContractFactory('Cryptonium')
+
+  const utils = await Utils.deploy()
+  await utils.deployed()
+  console.log(`Utils deployed to: ${utils.address}`)
+  
+  const mockLink = await MockLink.deploy()
+  await mockLink.deployed()
+  console.log(`MockLink deployed to: ${mockLink.address}`)
+  
+  const vrfCoordinatorMock = await VRFCoordinatorMock.deploy(mockLink.address)
+  await vrfCoordinatorMock.deployed()
+  console.log(`VRFCoordinatorMock deployed to: ${vrfCoordinatorMock.address}`)
+
+  const ethets = await Ethets.deploy(utils.address, vrfCoordinatorMock.address, mockLink.address)
+  await ethets.deployed()
+  console.log(`Ethets deployed to: ${ethets.address}`)
+
+  const ethetsks = await Ethetsks.deploy(ethets.address, utils.address, vrfCoordinatorMock.address, mockLink.address)
+  await ethetsks.deployed()
+  console.log(`Ethetsks deployed to: ${ethetsks.address}`)
+
+  const krypton = await Krypton.deploy()
+  await krypton.deployed()
+  console.log(`Krypton deployed to ${krypton.address}`)
+
+  await ethets.toggleSaleIsActive()
+  console.log('Ethets sales toggled to active')
+
+  await ethets.setCRP(krypton.address)
+  console.log(`Ethets CRP Address set to ${krypton.address}`)
+
+  await ethets.toggleRerollingIsActive()
+  console.log('Ethets stats rerolling toggled to active')
+
+  await ethets.setSidekick(ethetsks.address)
+  console.log(`Ethets sidekick address set to ${ethetsks.address}`)
+
+  await ethets.toggleHybridizationIsActive()
+  console.log('Ethets hybridization toggled to active')
+  
+  await mockLink.mint(ethets.address, '1000000000000000000')
+  console.log(`1000000000000000000 MockLink minted to Ethets (${ethets.address})`)
+
+
+
+  /* 
   const Ethets = await hre.ethers.getContractFactory('Ethets')
   const Utils = await ethers.getContractFactory('Utils')
   const VRFCoordinatorMock = await ethers.getContractFactory('VRFCoordinatorMock')
@@ -20,7 +72,11 @@ async function main() {
   await mockLink.mint(ethets.address, '20000000000000000000')
 
   console.log(`Ethets deployed to: ${ethets.address}`)
-  
+   */
+
+
+
+
   /* 
   const Ethetsks = await ethers.getContractFactory('Ethetsks')
   ethetsks = await Ethetsks.deploy(ethets.address)
