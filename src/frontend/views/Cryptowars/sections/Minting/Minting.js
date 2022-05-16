@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import { ethers } from 'ethers'
 import 'regenerator-runtime/runtime'
 
-const Minting = ({ ethets, vrfCoordinatorMock }) => {
+import './Minting.sass'
+
+const Minting = ({ ethets }) => {
   const [ quantity, setQuantity ] = useState(0)
 
   const mintTokens = async e => {
@@ -14,23 +16,27 @@ const Minting = ({ ethets, vrfCoordinatorMock }) => {
 
     ethets.mint(recipient, quantity, {value: ethers.utils.parseEther(`${cost}`)})
       .then(transaction => transaction.wait())
-      .then(result => result.events.forEach(async (evnt, i) => {
-        await vrfCoordinatorMock.callBackWithRandomness(evnt.data, i * 2, ethets.address)
-      }))
+      .then(result => result.events.forEach(evnt => console.log(`Ethets mint randomness request: ${evnt.data}`)))
       .catch(error => console.log(error.data.message))
   }
 
   return (
-    <form onSubmit={mintTokens}>
+    <form onSubmit={mintTokens} id='Minting'>
+
+      <h1>Mint new ETs</h1>
+
+      <label htmlFor='address'>Paste your Wallet Address</label>
       <input placeholder='Wallet Address' id='address'/>
 
-      <div>
-        <button type='button' onClick={() => quantity < 30 && setQuantity(quantity + 1)}>Up</button>
+      <div id='quantitySlector'>
+        <label htmlFor='quantitySlector'>Mint Multiple Tokens:   </label>
+        <button type='button' onClick={() => quantity < 30 && setQuantity(quantity + 1)}>{'\u25B2'}</button>
         <input value={quantity} id='quantity' readOnly/>
-        <button type='button' onClick={() => quantity > 0 && setQuantity(quantity - 1)}>Down</button>
+        <button type='button' onClick={() => quantity > 0 && setQuantity(quantity - 1)}>{'\u25BC'}</button>
       </div>
 
-      <button type='submit'>Mint</button>
+
+      <button id='mintButton' type='submit'>Mint</button>
     </form>
   )
 }

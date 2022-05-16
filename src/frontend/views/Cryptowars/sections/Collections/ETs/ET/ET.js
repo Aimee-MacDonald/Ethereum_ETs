@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import './ET.sass'
 
-const ET = ({ tokenId, ethets, krypton, vrfCoordinatorMock }) => {
+const ET = ({ tokenId, ethets, krypton }) => {
   const [ tokenStats, setTokenStats ] = useState({
     firing_range: '???',
     firing_speed: '???',
@@ -15,6 +15,20 @@ const ET = ({ tokenId, ethets, krypton, vrfCoordinatorMock }) => {
 
   const [ ability, setAbility ] = useState('???')
   const [ weaponTier, setWeaponTier ] = useState('???')
+  const [ imageURL, setImageURL ] = useState('#')
+
+  useEffect(() => {
+    if(ethets !== null) {
+      ethets.tokenURI(tokenId)
+        .then(result => result.substring(29, result.length))
+        .then(result => window.atob(result))
+        .then(result => JSON.parse(result))
+        .then(result => {
+          setImageURL(result.image)
+        })
+        .catch(error => console.log(error))
+    }
+  })
 
   useEffect(() => {
     if(ethets !== null) {
@@ -58,15 +72,8 @@ const ET = ({ tokenId, ethets, krypton, vrfCoordinatorMock }) => {
           if(result.events[0].event === 'Approval') {
             ethets.rerollStats(tokenId)
               .then(transaction => transaction.wait())
-              .then(result => {
-                const randomnessID = result.events[2].data
-                const randomness = Math.floor(Math.random() * 10000000000000000)
-
-                vrfCoordinatorMock.callBackWithRandomness(randomnessID, randomness, ethets.address)
-                  .then(result => console.log(result))
-                  .catch(error => console.log(error))
-              })
-              .catch(error => console.log(error))
+              .then(result => console.log(`Ethets rerollStats randomness request: ${result.events[2].data}`))
+              .catch(error => console.log(error.data.message))
           }
         })
         .catch(error => console.log(error))
@@ -81,15 +88,8 @@ const ET = ({ tokenId, ethets, krypton, vrfCoordinatorMock }) => {
           if(result.events[0].event === 'Approval') {
             ethets.rerollAbility(tokenId)
               .then(transaction => transaction.wait())
-              .then(result => {
-                const randomnessID = result.events[2].data
-                const randomness = Math.floor(Math.random() * 10000000000000000)
-
-                vrfCoordinatorMock.callBackWithRandomness(randomnessID, randomness, ethets.address)
-                  .then(result => console.log(result))
-                  .catch(error => console.log(error))
-              })
-              .catch(error => console.log(error))
+              .then(result => console.log(`Ethets rerollStats randomness request: ${result.events[2].data}`))
+              .catch(error => console.log(error.data.message))
           }
         })
         .catch(error => console.log(error))
@@ -121,7 +121,9 @@ const ET = ({ tokenId, ethets, krypton, vrfCoordinatorMock }) => {
   
   return (
     <div id='ET'>
-      <div id='image'>Image</div>
+      <div id='image'>
+        <img src={imageURL}/>
+      </div>
 
       <div id='stats'>
         <p>Token ID: {tokenId}</p>

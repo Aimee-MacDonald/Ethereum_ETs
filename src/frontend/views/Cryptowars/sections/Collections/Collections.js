@@ -6,7 +6,7 @@ import ETs from './ETs/ETs'
 import Motherships from './Motherships/Motherships'
 import Sidekicks from './Sidekicks/Sidekicks'
 
-const Collections = ({ signerAddress, ethets, ethetsks, krypton, vrfCoordinatorMock }) => {
+const Collections = ({ signerAddress, ethets, ethetsks, krypton }) => {
   const [ kryptonBalance, setKryptonBalance ] = useState('???')
 
   useEffect(() => {
@@ -22,7 +22,7 @@ const Collections = ({ signerAddress, ethets, ethetsks, krypton, vrfCoordinatorM
       <h1>Cryptonium</h1>
       <p>You own {kryptonBalance} KRYPTON</p>
 
-      <ETs ethets={ethets} signerAddress={signerAddress} krypton={krypton} vrfCoordinatorMock={vrfCoordinatorMock}/>
+      <ETs ethets={ethets} signerAddress={signerAddress} krypton={krypton}/>
 
       <Sidekicks signerAddress={signerAddress} ethetsks={ethetsks}/>
 

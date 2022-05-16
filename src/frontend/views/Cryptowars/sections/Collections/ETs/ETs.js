@@ -4,7 +4,7 @@ import './ETs.sass'
 
 import ET from './ET/ET'
 
-const ETs = ({ ethets, signerAddress, krypton, vrfCoordinatorMock }) => {
+const ETs = ({ ethets, signerAddress, krypton }) => {
   const [ numTokens, setNumTokens ] = useState(0)
   const [ tokens, setTokens ] = useState([])
 
@@ -28,7 +28,7 @@ const ETs = ({ ethets, signerAddress, krypton, vrfCoordinatorMock }) => {
   
   return (
     <div id='ETs'>
-      {tokens.map(token => <ET key={token} tokenId={token} ethets={ethets} krypton={krypton} vrfCoordinatorMock={vrfCoordinatorMock}/>)}
+      {tokens.map(token => <ET key={token} tokenId={token} ethets={ethets} krypton={krypton}/>)}
     </div>
   )
 }
