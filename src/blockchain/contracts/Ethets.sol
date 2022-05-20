@@ -45,7 +45,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
   
   IUtils private UTILS;
   ISidekick private SIDEKICK;
-  IERC20 private CRP;
+  ICryptonium private CRP;
 
   event SaleIsActiveToggle(bool saleIsActive);
   event RerollingIsActiveToggle(bool rerollingIsActive);
@@ -174,7 +174,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
   function setCRP(address contractAddress) external onlyOwner {
     require(address(CRP) == address(0), "Ethets: CRP has already been set");
-    CRP = IERC20(contractAddress);
+    CRP = ICryptonium(contractAddress);
 
     emit CRPAddressSet(contractAddress);
   }
@@ -260,7 +260,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     require(address(CRP) != address(0), "Ethets: CRP not set");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
 
-    CRP.transferFrom(_msgSender(), address(this), 950);
+    CRP.burnFrom(_msgSender(), 950);
     
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.STATISTICS, address(0));
@@ -281,7 +281,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     require(ownerOf(tokenId) == _msgSender(), "Ethets: This token does not belong to you");
     require(LINK.balanceOf(address(this)) >= VRF_FEE, "Ethets: Not enough LINK in the contract");
     
-    CRP.transferFrom(_msgSender(), address(this), 2000);
+    CRP.burnFrom(_msgSender(), 2000);
 
     bytes32 requestId = requestRandomness(VRF_KEY_HASH, VRF_FEE);
     _randomnessRequests[requestId] = RandomnessRequest(tokenId, RandomnessRequestType.ABILITY, address(0));
@@ -297,7 +297,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
     uint256 weaponTier = uint256(_weaponTiers[tokenId]);
     uint256 upgradeCost = _weaponUpgradeCosts[weaponTier];
-    CRP.transferFrom(_msgSender(), address(this), upgradeCost);
+    CRP.burnFrom(_msgSender(), upgradeCost);
 
     uint256 newTier = uint256(_weaponTiers[tokenId]);
     _weaponTiers[tokenId] = WeaponTier(newTier + 1);
@@ -315,7 +315,7 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
 
     uint256 hybridCost = _hybridCosts[_hybridCounts[token_1]] + _hybridCosts[_hybridCounts[token_2]];
 
-    CRP.transferFrom(_msgSender(), address(this), hybridCost);
+    CRP.burnFrom(_msgSender(), hybridCost);
     SIDEKICK.mint(token_1, token_2);
 
     _hybridCounts[token_1]++;
@@ -427,6 +427,10 @@ contract Ethets is Ownable, ERC721Enumerable, VRFConsumerBase, ReentrancyGuard {
     
     emit FundsWithdrawn("CRP");
   }
+}
+
+interface ICryptonium is IERC20 {
+  function burnFrom(address account, uint256 amount) external;
 }
 
 interface IUtils {

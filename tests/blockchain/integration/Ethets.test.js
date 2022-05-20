@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 
 describe('Ethets integration', () => {
-  let signers, ethets, ethetsks
+  let signers, ethets, ethetsks, cryptonium
 
   beforeEach(async () => {
     signers = await ethers.getSigners()
@@ -23,10 +23,11 @@ describe('Ethets integration', () => {
     ethetsks = await Ethetsks.deploy(ethets.address, utils.address, vrfCoordinatorMock.address, mockLink.address)
 
     const Cryptonium = await ethers.getContractFactory('Cryptonium')
-    const cryptonium = await Cryptonium.deploy()
+    cryptonium = await Cryptonium.deploy()
 
     await ethets.setSidekick(ethetsks.address)
     await ethets.setCRP(cryptonium.address)
+    await ethets.toggleRerollingIsActive()
 
     await ethets.toggleSaleIsActive()
     await ethets.toggleHybridizationIsActive()
@@ -51,6 +52,40 @@ describe('Ethets integration', () => {
       await ethets.hybridize(0, 1)
 
       expect(await ethetsks.balanceOf(signers[0].address)).to.equal(1)
+    })
+  })
+
+  describe('Cryptonium', () => {
+    it('Should burn Cryptonium when rerolling stats', async () => {
+      expect(await cryptonium.totalSupply()).to.equal(50000)
+      
+      await ethets.rerollStats(0)
+
+      expect(await cryptonium.totalSupply()).to.equal(49050)
+    })
+
+    it('Should burn Cryptonium when rerolling ability', async () => {
+      expect(await cryptonium.totalSupply()).to.equal(50000)
+      
+      await ethets.rerollAbility(0)
+      
+      expect(await cryptonium.totalSupply()).to.equal(48000)
+    })
+    
+    it('Should burn Cryptonium when upgrading weapon', async () => {
+      expect(await cryptonium.totalSupply()).to.equal(50000)
+      
+      await ethets.upgradeWeapon(0)
+      
+      expect(await cryptonium.totalSupply()).to.equal(49900)
+    })
+    
+    it('Should burn Cryptonium when Hybridising', async () => {
+      expect(await cryptonium.totalSupply()).to.equal(50000)
+
+      await ethets.hybridize(0, 1)
+
+      expect(await cryptonium.totalSupply()).to.equal(49800)
     })
   })
 })
