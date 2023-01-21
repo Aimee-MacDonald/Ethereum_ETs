@@ -55,9 +55,9 @@ contract GenesisSK is Ownable, ERC721Enumerable, ReentrancyGuard {
     require(_merkleRoot != 0, "GenesisSK: Merkle Root not Set");
     require(!_claimed[tokenId], "GenesisSK: Token already Claimed");
 
-    bytes32 leaf = keccak256(abi.encodePacked(_msgSender()));
+    bytes32 leaf = keccak256(abi.encodePacked(_msgSender(), tokenId));
     require(MerkleProof.verify(proof, _merkleRoot, leaf), "GenesisSK: Invalid Proof");
-
+    
     _claimed[tokenId] = true;
     _safeMint(_msgSender(), tokenId);
   }

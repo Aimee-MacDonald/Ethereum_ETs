@@ -49,11 +49,11 @@ describe('Genesis Sidekicks Unit', () => {
   describe('Whitelist', () => {
     it('Should revert if merkle tree root is not set', () => {
       const proof = [
-        '0xba1e1ed4749e27d3fc4a93cb926aaca781b2da5376580a96baad9fae24fd8002',
-        '0xf2683d3c628d2f2b91acd3058ba5c43f91c62ab132069900c3849fc9c1b65f01',
-        '0x843ca9974a7016bcb262088f8272245972b98a56b542596bcf12e17a5f634811',
-        '0xbf902a1941f35ad10e3cf481f7fea36806ec3bd5470caa5af644fe54e3b49fa7',
-        '0x337547a7ba3ff7d9f4f388adcd1a813a1ac4bc66b8d1697d66514ddfe7c017b7'
+        '0x274996539fafc4b0887fdcfbe1c73bc1147c223b1ebedc6e4e8462a80707d2c7',
+        '0xff44073c86b5f36d03e3cd6c33164ce126a78b18b7e90da5ede5b0a38c1906c2',
+        '0x8df12610124b2f1d449b15a3738c89d89da351486556b8edec14891a3d33a10c',
+        '0x74175349793b8b77859a3add3bc6b566832b7cd5e549d1b4240e3c2bc17c236c',
+        '0x7fbaee0d3844acad166301012340d54a8dfb194a0c9f32cebed1ff8c71906898'
       ];
 
       expect(genesisSK.whitelistClaim(1, proof)).to.be.revertedWith("GenesisSK: Merkle Root not Set")
@@ -61,33 +61,33 @@ describe('Genesis Sidekicks Unit', () => {
 
     it('Should set the Merkle Root', async () => {
       const proof = [
-        "0x00314e565e0574cb412563df634608d76f5c59d9f817e85966100ec1d48005c0",
-        "0x7e0eefeb2d8740528b8f598997a219669f0842302d3c573e9bb7262be3387e63",
-        "0x90a5fdc765808e5a2e0d816f52f09820c5f167703ce08d078eb87e2c194c5525",
-        "0x5a34698734dde87d16cbecce5d1c793eed47d6456e40489b991d8fb9e370a92d",
-        "0x6d6cbee8dcc53afd0fe8468716e17f2c38de5112a301ca32c586f1daa063b47d"
+        '0x274996539fafc4b0887fdcfbe1c73bc1147c223b1ebedc6e4e8462a80707d2c7',
+        '0xff44073c86b5f36d03e3cd6c33164ce126a78b18b7e90da5ede5b0a38c1906c2',
+        '0x8df12610124b2f1d449b15a3738c89d89da351486556b8edec14891a3d33a10c',
+        '0x74175349793b8b77859a3add3bc6b566832b7cd5e549d1b4240e3c2bc17c236c',
+        '0x7fbaee0d3844acad166301012340d54a8dfb194a0c9f32cebed1ff8c71906898'
       ];
       
-      await genesisSK.setMerkleRoot("0xd38a533706a576a634c618407eb607df606d62179156c0bed7ab6c2088b01de9")
+      await genesisSK.setMerkleRoot("0x6a9d6791629880d211d618caac000c3a8e21d92691dbfbcf5a6dff4e118bd2c4")
       
       genesisSK.whitelistClaim(1, proof)
     })
 
     it("Should revert if not the owner", () => {
-      expect(genesisSK.connect(signers[1]).setMerkleRoot("0xd38a533706a576a634c618407eb607df606d62179156c0bed7ab6c2088b01de9")).to.be.revertedWith("Ownable: caller is not the owner");
+      expect(genesisSK.connect(signers[1]).setMerkleRoot("0x6a9d6791629880d211d618caac000c3a8e21d92691dbfbcf5a6dff4e118bd2c4")).to.be.revertedWith("Ownable: caller is not the owner");
     })
 
     it('Should mint the reserved token', async () => {
       expect(await genesisSK.balanceOf(signers[0].address)).to.equal(0)
 
-      await genesisSK.setMerkleRoot("0xd38a533706a576a634c618407eb607df606d62179156c0bed7ab6c2088b01de9")
+      await genesisSK.setMerkleRoot("0x6a9d6791629880d211d618caac000c3a8e21d92691dbfbcf5a6dff4e118bd2c4")
       
       const proof = [
-        "0x00314e565e0574cb412563df634608d76f5c59d9f817e85966100ec1d48005c0",
-        "0x7e0eefeb2d8740528b8f598997a219669f0842302d3c573e9bb7262be3387e63",
-        "0x90a5fdc765808e5a2e0d816f52f09820c5f167703ce08d078eb87e2c194c5525",
-        "0x5a34698734dde87d16cbecce5d1c793eed47d6456e40489b991d8fb9e370a92d",
-        "0x6d6cbee8dcc53afd0fe8468716e17f2c38de5112a301ca32c586f1daa063b47d"
+        '0x274996539fafc4b0887fdcfbe1c73bc1147c223b1ebedc6e4e8462a80707d2c7',
+        '0xff44073c86b5f36d03e3cd6c33164ce126a78b18b7e90da5ede5b0a38c1906c2',
+        '0x8df12610124b2f1d449b15a3738c89d89da351486556b8edec14891a3d33a10c',
+        '0x74175349793b8b77859a3add3bc6b566832b7cd5e549d1b4240e3c2bc17c236c',
+        '0x7fbaee0d3844acad166301012340d54a8dfb194a0c9f32cebed1ff8c71906898'
       ];
       
       await genesisSK.whitelistClaim(1, proof)
@@ -98,14 +98,14 @@ describe('Genesis Sidekicks Unit', () => {
     it("Should set token claimed status to true", async () => {
       expect(await genesisSK.isClaimed(1)).to.equal(false)
 
-      await genesisSK.setMerkleRoot("0xd38a533706a576a634c618407eb607df606d62179156c0bed7ab6c2088b01de9")
+      await genesisSK.setMerkleRoot("0x6a9d6791629880d211d618caac000c3a8e21d92691dbfbcf5a6dff4e118bd2c4")
       
       const proof = [
-        "0x00314e565e0574cb412563df634608d76f5c59d9f817e85966100ec1d48005c0",
-        "0x7e0eefeb2d8740528b8f598997a219669f0842302d3c573e9bb7262be3387e63",
-        "0x90a5fdc765808e5a2e0d816f52f09820c5f167703ce08d078eb87e2c194c5525",
-        "0x5a34698734dde87d16cbecce5d1c793eed47d6456e40489b991d8fb9e370a92d",
-        "0x6d6cbee8dcc53afd0fe8468716e17f2c38de5112a301ca32c586f1daa063b47d"
+        '0x274996539fafc4b0887fdcfbe1c73bc1147c223b1ebedc6e4e8462a80707d2c7',
+        '0xff44073c86b5f36d03e3cd6c33164ce126a78b18b7e90da5ede5b0a38c1906c2',
+        '0x8df12610124b2f1d449b15a3738c89d89da351486556b8edec14891a3d33a10c',
+        '0x74175349793b8b77859a3add3bc6b566832b7cd5e549d1b4240e3c2bc17c236c',
+        '0x7fbaee0d3844acad166301012340d54a8dfb194a0c9f32cebed1ff8c71906898'
       ];
       
       await genesisSK.whitelistClaim(1, proof)
@@ -114,14 +114,14 @@ describe('Genesis Sidekicks Unit', () => {
     })
 
     it("Should revert if claimed status is true", async () => {
-      await genesisSK.setMerkleRoot("0xd38a533706a576a634c618407eb607df606d62179156c0bed7ab6c2088b01de9")
+      await genesisSK.setMerkleRoot("0x6a9d6791629880d211d618caac000c3a8e21d92691dbfbcf5a6dff4e118bd2c4")
       
       const proof = [
-        "0x00314e565e0574cb412563df634608d76f5c59d9f817e85966100ec1d48005c0",
-        "0x7e0eefeb2d8740528b8f598997a219669f0842302d3c573e9bb7262be3387e63",
-        "0x90a5fdc765808e5a2e0d816f52f09820c5f167703ce08d078eb87e2c194c5525",
-        "0x5a34698734dde87d16cbecce5d1c793eed47d6456e40489b991d8fb9e370a92d",
-        "0x6d6cbee8dcc53afd0fe8468716e17f2c38de5112a301ca32c586f1daa063b47d"
+        '0x274996539fafc4b0887fdcfbe1c73bc1147c223b1ebedc6e4e8462a80707d2c7',
+        '0xff44073c86b5f36d03e3cd6c33164ce126a78b18b7e90da5ede5b0a38c1906c2',
+        '0x8df12610124b2f1d449b15a3738c89d89da351486556b8edec14891a3d33a10c',
+        '0x74175349793b8b77859a3add3bc6b566832b7cd5e549d1b4240e3c2bc17c236c',
+        '0x7fbaee0d3844acad166301012340d54a8dfb194a0c9f32cebed1ff8c71906898'
       ];
       
       await genesisSK.whitelistClaim(1, proof)

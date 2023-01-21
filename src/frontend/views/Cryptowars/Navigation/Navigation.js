@@ -8,6 +8,7 @@ const Navigation = ({ setActiveView }) => (
     <button onClick={() => setActiveView(1)}>Collections</button>
     <button onClick={() => setActiveView(2)}>Hybridisation</button>
     <button onClick={() => setActiveView(3)}>Motherships</button>
+    <button onClick={() => setActiveView(4)}>Genesis SK</button>
   </div>
 )
 

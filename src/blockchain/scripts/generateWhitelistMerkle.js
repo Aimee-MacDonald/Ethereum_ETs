@@ -24,7 +24,21 @@ addresses = [
   '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199'
 ]
 
-const leafNodes = addresses.map(addr => keccak256(addr))
+//  0xf39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000000000001
+
+const compare = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb922660000000000000000000000000000000000000000000000000000000000000001'
+console.log(compare)
+
+const leafNodes = addresses.map((address, id) => {
+  id = String(id + 1)
+  
+  while(id.length < 64) {
+    id = '0' + id
+  }
+
+  return keccak256(address + id)
+})
+
 const merkleTree = new MerkleTree(leafNodes, keccak256, {sortPairs: true})
 console.log("Merkle Tree:\n", merkleTree.toString())
 

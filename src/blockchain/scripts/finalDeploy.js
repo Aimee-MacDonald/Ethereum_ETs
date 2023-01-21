@@ -5,6 +5,7 @@ async function main() {
   const linkAddress = '0x326C977E6efc84E512bB9C30f76E30c160eD06FB'
 
   const Utils = await hre.ethers.getContractFactory('Utils')
+  const GenesisSK = await hre.ethers.getContractFactory('GenesisSK')
   const Ethets = await hre.ethers.getContractFactory('Ethets')
   const Ethetsks = await hre.ethers.getContractFactory('Ethetsks')
   const Krypton = await hre.ethers.getContractFactory('Cryptonium')
@@ -12,6 +13,10 @@ async function main() {
   const utils = await Utils.deploy()
   await utils.deployed()
   console.log(`Utils deployed to: ${utils.address}`)
+
+  const genesisSK = await GenesisSK.deploy()
+  await genesisSK.deployed()
+  console.log(`GenesisSK deployed to: ${genesisSK.address}`)
 
   const ethets = await Ethets.deploy(utils.address, vrfAddress, linkAddress)
   await ethets.deployed()
